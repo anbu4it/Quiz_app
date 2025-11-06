@@ -1,0 +1,3 @@
+/* minimal styles to complement bootstrap */
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+.card { border-radius: 12px; }
