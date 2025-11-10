@@ -115,6 +115,7 @@ def create_app(test_config: dict | None = None):
     @app.route('/healthz', methods=['GET'])
     def healthz():
         import time as _t
+        import os  # defensive import to avoid NameError if module import changes
         status = {"status": "ok", "db": False}
         # Try up to 2 short attempts in case of transient SSL/idle connection issues
         attempts = 2
