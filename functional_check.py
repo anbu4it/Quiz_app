@@ -6,6 +6,7 @@ Outputs tuple of (status_code, heuristic_content_ok) per route.
 from app import create_app
 import uuid
 from bs4 import BeautifulSoup
+from contextlib import contextmanager
 
 def run_checks():
     app = create_app({'TESTING': True, 'WTF_CSRF_ENABLED': False})
@@ -24,20 +25,50 @@ def run_checks():
         start = c.post('/quiz', data={'quiz_type':'General Knowledge','username':uname}, follow_redirects=True)
         results['start_quiz'] = (start.status_code, '/question' in start.request.path or 'quiz.html' in start.get_data(as_text=True))
 
-        # Question GET
+        # Question GET initial
         q1 = c.get('/question')
         results['question_get'] = (q1.status_code, 'quiz.html' in q1.get_data(as_text=True))
 
-        # Answer submission
-        soup = BeautifulSoup(q1.get_data(as_text=True), 'html.parser')
-        first = soup.find('input', {'name':'answer'})
-        ans = first['value'] if first and first.has_attr('value') else None
-        sub = c.post('/question', data={'answer': ans}, follow_redirects=True)
-        results['question_post'] = (sub.status_code, ('quiz.html' in sub.get_data(as_text=True)) or ('result.html' in sub.get_data(as_text=True)))
+        # Finish the quiz by submitting the correct answer for each question from session
+        # This makes the flow deterministic and should yield a perfect score
+        from models import Score, db  # local import to avoid test-time circulars
+        # Determine total questions from session and submit correct answers
+        with c.session_transaction() as sess:
+            total = len(sess.get('questions', []))
+        last_resp = None
+        for _ in range(max(0, total)):
+            with c.session_transaction() as sess:
+                idx = sess.get('current_index', 0)
+                questions = sess.get('questions', [])
+                correct = None
+                if 0 <= idx < len(questions):
+                    correct = questions[idx].get('correct')
+            last_resp = c.post('/question', data={'answer': correct}, follow_redirects=True)
+        # After final submission, we should be on the result page
+        results['quiz_finish'] = (
+            getattr(last_resp, 'status_code', 0),
+            last_resp is not None and ('score' in last_resp.get_data(as_text=True).lower() or 'result' in last_resp.get_data(as_text=True).lower())
+        )
 
-        # Result page (may require finishing all questions; tolerant check)
-        res = c.get('/result')
-        results['result_page'] = (res.status_code, 'score' in res.get_data(as_text=True).lower() or 'result' in res.get_data(as_text=True).lower())
+        # Validate DB saved score equals total for logged-in user
+        saved_ok = False
+        user_id = None
+        with c.session_transaction() as sess:
+            uid = sess.get('_user_id')
+            if uid:
+                try:
+                    user_id = int(uid)
+                except Exception:
+                    user_id = None
+        if user_id:
+            with app.app_context():
+                try:
+                    last_score = db.session.query(Score).filter_by(user_id=user_id).order_by(Score.date_taken.desc()).first()
+                    if last_score and last_score.max_score == total and last_score.score == total:
+                        saved_ok = True
+                except Exception:
+                    saved_ok = False
+        results['db_saved'] = (200, saved_ok)
 
         # Dashboard
         dash = c.get('/dashboard')
