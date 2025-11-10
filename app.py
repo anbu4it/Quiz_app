@@ -48,23 +48,37 @@ def create_app(test_config: dict | None = None):
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
 
-    # Only auto-create tables for local SQLite fallback (avoid accidental schema drift in prod)
+    # Migration / schema safety:
+    #  - For local SQLite: auto-create tables if missing.
+    #  - For Postgres/other: if tables missing, attempt alembic upgrade once.
     with app.app_context():
-        if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite:///'):
-            try:
-                inspector = inspect(db.engine)
-                has_user = inspector.has_table('user')
-                has_score = inspector.has_table('score')
-                if not (has_user and has_score):
-                    db.create_all()
-                    print("(Local) SQLite database initialized.")
-            except Exception:
-                # As a fallback, try to create_all to ensure dev environment works
+        inspector = inspect(db.engine)
+        uri = app.config['SQLALCHEMY_DATABASE_URI']
+        has_user = inspector.has_table('user')
+        has_score = inspector.has_table('score')
+
+        if uri.startswith('sqlite:///'):
+            if not (has_user and has_score):
                 try:
                     db.create_all()
-                    print("(Local) SQLite database initialized (fallback).")
+                    print("(Local) SQLite database initialized.")
                 except Exception:
                     pass
+        else:
+            # Non-sqlite (likely Postgres). If tables missing, run alembic upgrade.
+            if not (has_user and has_score):
+                try:
+                    from flask_migrate import upgrade
+                    print("[migration-check] Detected missing tables; running alembic upgrade...")
+                    upgrade()
+                    # re-inspect after upgrade
+                    inspector = inspect(db.engine)
+                    if not (inspector.has_table('user') and inspector.has_table('score')):
+                        raise RuntimeError("Migration upgrade ran but required tables still missing.")
+                    print("[migration-check] Tables present after upgrade.")
+                except Exception as e:
+                    # Fail fast so 500 errors don't occur mid-request later
+                    raise RuntimeError(f"Database schema incomplete and automatic migration failed: {e}")
 
     # Register blueprints
     app.register_blueprint(main_bp)

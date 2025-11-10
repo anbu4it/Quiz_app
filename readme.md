@@ -57,3 +57,13 @@ Run tests (optional):
 2. python -m pip install -r requirements.txt
 3. python -m pytest -q
 
+## Configuration (Trivia Fetch)
+
+Environment variables to tune trivia question fetching and caching:
+
+- QUIZ_CACHE_TTL: Cache duration in seconds for fetched questions. Default: 120
+- TRIVIA_TIMEOUT_SECONDS: HTTP timeout per request to OpenTDB. Default: 5
+- TRIVIA_MAX_RETRIES: Number of attempts with simple linear backoff. Default: 3
+
+Backoff pattern is linear at 0.4s increments per attempt (e.g., 0.0s, 0.4s, 0.8s for 3 retries).
+

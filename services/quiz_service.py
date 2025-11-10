@@ -17,19 +17,53 @@ CATEGORY_MAP = {
     "Celebrities": 26
 }
 
+import os
+from datetime import datetime, timezone
+_QUESTION_CACHE: dict = {}
+# Allow TTL override via env var QUIZ_CACHE_TTL (seconds)
+try:
+    _CACHE_TTL_SECONDS = int(os.getenv('QUIZ_CACHE_TTL', '120'))
+except ValueError:
+    _CACHE_TTL_SECONDS = 120
+
 class TriviaService:
-    def __init__(self, timeout: int = 5):
+    def __init__(self, timeout: int = None, retries: int = None):
+        # Allow overrides from env; fallback to provided argument or defaults
+        if timeout is None:
+            try:
+                timeout = int(os.getenv('TRIVIA_TIMEOUT_SECONDS', '5'))
+            except ValueError:
+                timeout = 5
+        if retries is None:
+            try:
+                retries = int(os.getenv('TRIVIA_MAX_RETRIES', '3'))
+            except ValueError:
+                retries = 3
         self.timeout = timeout
+        self.retries = max(1, retries)
 
     def _fetch(self, amount: int = 1, category_id: int = None) -> List[Dict]:
-        """Call OpenTDB and return list of raw question dicts (may be empty)."""
+        """Call OpenTDB with simple retry/backoff; return list of raw question dicts (may be empty)."""
         params = {"amount": amount, "type": "multiple"}
         if category_id:
             params["category"] = category_id
-        resp = requests.get("https://opentdb.com/api.php", params=params, timeout=self.timeout)
-        resp.raise_for_status()
-        data = resp.json()
-        return data.get("results", [])
+        # dynamic linear backoff sequence based on configured retries
+        backoffs = [i * 0.4 for i in range(self.retries)]  # 0.0, 0.4, 0.8, ...
+        last_err = None
+        for delay in backoffs:
+            if delay:
+                import time as _t
+                _t.sleep(delay)
+            try:
+                resp = requests.get("https://opentdb.com/api.php", params=params, timeout=self.timeout)
+                resp.raise_for_status()
+                data = resp.json()
+                return data.get("results", [])
+            except Exception as e:
+                last_err = e
+                continue
+        # On repeated failure, return empty (caller performs fallback logic)
+        return []
 
     def fetch_questions_for_topics(self, topics: List[str], total_needed: int = 5) -> List[Dict]:
         """
@@ -37,7 +71,15 @@ class TriviaService:
         when possible, using fallback to general API if needed.
         Returns list of question dicts with keys: question, options, correct
         """
+        import time
         questions = []
+
+        # Basic cache key using sorted topics and requested total
+        key = (tuple(sorted(topics)), total_needed)
+        now = time.time()
+        cached = _QUESTION_CACHE.get(key)
+        if cached and (now - cached['ts'] < _CACHE_TTL_SECONDS):
+            return cached['data'][:]
 
         if not topics:
             return []
@@ -78,6 +120,10 @@ class TriviaService:
             return []
 
         if len(questions) <= total_needed:
-            return questions
-        # random sample for variability
-        return random.sample(questions, total_needed)
+            final = questions
+        else:
+            final = random.sample(questions, total_needed)
+
+        # Store in cache
+        _QUESTION_CACHE[key] = {'data': final[:], 'ts': now}
+        return final

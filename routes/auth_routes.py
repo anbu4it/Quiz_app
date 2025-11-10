@@ -67,17 +67,18 @@ def register():
         # Input validation
         if not username or not email or not password:
             flash('All fields are required', 'error')
-            return redirect(url_for('auth.register'))
+            # Re-render form preserving non-sensitive fields
+            return render_template('auth/register.html', prefill_username=username, prefill_email=email)
             
         if len(username) < 3 or len(username) > 80:
             flash('Username must be between 3 and 80 characters', 'error')
-            return redirect(url_for('auth.register'))
+            return render_template('auth/register.html', prefill_username=username, prefill_email=email)
             
         # Stronger password policy in production; relax in tests
         if current_app.config.get('TESTING'):
             if len(password) < 8:
                 flash('Password must be at least 8 characters long', 'error')
-                return redirect(url_for('auth.register'))
+                return render_template('auth/register.html', prefill_username=username, prefill_email=email)
         else:
             if (
                 len(password) < 8 or
@@ -87,19 +88,19 @@ def register():
                 not re.search(r"[^A-Za-z0-9]", password)
             ):
                 flash('Password must be at least 8 characters and include upper, lower, digit and special character.', 'error')
-                return redirect(url_for('auth.register'))
+                return render_template('auth/register.html', prefill_username=username, prefill_email=email)
             
         if password != confirm_password:
             flash('Passwords do not match', 'error')
-            return redirect(url_for('auth.register'))
+            return render_template('auth/register.html', prefill_username=username, prefill_email=email)
             
         if User.query.filter_by(username=username).first():
             flash('Username already exists', 'error')
-            return redirect(url_for('auth.register'))
+            return render_template('auth/register.html', prefill_username=username, prefill_email=email)
             
         if User.query.filter_by(email=email).first():
             flash('Email already registered', 'error')
-            return redirect(url_for('auth.register'))
+            return render_template('auth/register.html', prefill_username=username, prefill_email=email)
         
         try:
             user = User(
@@ -118,8 +119,9 @@ def register():
             db.session.rollback()
             flash('Registration failed. Please try again.', 'error')
             current_app.logger.exception("registration_failed username=%s", username)
-            return redirect(url_for('auth.register'))
+            return render_template('auth/register.html', prefill_username=username, prefill_email=email)
     
+    # If GET request or fall-through, attempt to use provided prefill vars (if any)
     return render_template('auth/register.html')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
