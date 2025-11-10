@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from config import Config, DB_PATH
 from models import db, User
 from pathlib import Path
-from sqlalchemy import text
+from sqlalchemy import text, inspect
 import logging
 
 # Import blueprints
@@ -21,7 +21,11 @@ login_manager = LoginManager()
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    # Use Session.get to avoid SQLAlchemy 2.x deprecation warnings
+    try:
+        return db.session.get(User, int(user_id))
+    except Exception:
+        return None
 
 def create_app(test_config: dict | None = None):
     # Load environment variables from .env when running via python app.py
@@ -46,9 +50,21 @@ def create_app(test_config: dict | None = None):
 
     # Only auto-create tables for local SQLite fallback (avoid accidental schema drift in prod)
     with app.app_context():
-        if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite:///') and not Path(DB_PATH).exists():
-            db.create_all()
-            print("(Local) SQLite database initialized.")
+        if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite:///'):
+            try:
+                inspector = inspect(db.engine)
+                has_user = inspector.has_table('user')
+                has_score = inspector.has_table('score')
+                if not (has_user and has_score):
+                    db.create_all()
+                    print("(Local) SQLite database initialized.")
+            except Exception:
+                # As a fallback, try to create_all to ensure dev environment works
+                try:
+                    db.create_all()
+                    print("(Local) SQLite database initialized (fallback).")
+                except Exception:
+                    pass
 
     # Register blueprints
     app.register_blueprint(main_bp)
