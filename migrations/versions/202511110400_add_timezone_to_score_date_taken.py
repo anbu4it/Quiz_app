@@ -16,12 +16,12 @@ depends_on = None
 
 
 def upgrade():
-    # For Postgres: alter to TIMESTAMP WITH TIME ZONE
     bind = op.get_bind()
     if bind.dialect.name == 'postgresql':
-        op.execute('ALTER TABLE score ALTER COLUMN date_taken TYPE TIMESTAMP WITH TIME ZONE USING date_taken AT TIME ZONE \''UTC\'')
+        # Reinterpret existing naive timestamps as UTC, then convert to timestamptz
+        op.execute("ALTER TABLE score ALTER COLUMN date_taken TYPE TIMESTAMP WITH TIME ZONE USING date_taken AT TIME ZONE 'UTC';")
     else:
-        # SQLite ignores timezone flag, but keep consistent type definition
+        # SQLite: type alteration for timezone flag not impactful; ensure column exists
         with op.batch_alter_table('score') as batch_op:
             batch_op.alter_column('date_taken', type_=sa.DateTime(timezone=True), existing_nullable=False)
 
@@ -29,7 +29,7 @@ def upgrade():
 def downgrade():
     bind = op.get_bind()
     if bind.dialect.name == 'postgresql':
-        op.execute('ALTER TABLE score ALTER COLUMN date_taken TYPE TIMESTAMP WITHOUT TIME ZONE')
+        op.execute("ALTER TABLE score ALTER COLUMN date_taken TYPE TIMESTAMP WITHOUT TIME ZONE;")
     else:
         with op.batch_alter_table('score') as batch_op:
             batch_op.alter_column('date_taken', type_=sa.DateTime(timezone=False), existing_nullable=False)

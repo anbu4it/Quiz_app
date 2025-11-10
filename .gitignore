@@ -27,6 +27,8 @@ static/uploads/*
 .coverage
 coverage.xml
 htmlcov/
+.pytest_cache/
+test_reg_debug.py
 
 # OS/editor
 .DS_Store

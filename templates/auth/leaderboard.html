@@ -48,7 +48,7 @@
                                     <td class="fw-bold">{{ loop.index }}</td>
                                     <td class="username-cell">
                                         {% if performer.avatar %}
-                                            <img src="{{ url_for('static', filename=performer.avatar) }}" alt="{{ performer.username }}'s avatar" class="avatar-img" />
+                                            <img src="{{ url_for('static', filename=performer.avatar) }}?v={{ performer.username|urlencode }}" alt="{{ performer.username }}'s avatar" class="avatar-img" />
                                         {% else %}
                                             <span class="avatar">{{ performer.username[0]|upper }}</span>
                                         {% endif %}
@@ -95,7 +95,7 @@
                                         <td class="fw-bold">{{ loop.index }}</td>
                                         <td class="username-cell">
                                             {% if score.avatar %}
-                                                <img src="{{ url_for('static', filename=score.avatar) }}" alt="{{ score.username }}'s avatar" class="avatar-img" />
+                                                <img src="{{ url_for('static', filename=score.avatar) }}?v={{ score.username|urlencode }}" alt="{{ score.username }}'s avatar" class="avatar-img" />
                                             {% else %}
                                                 <span class="avatar">{{ score.username[0]|upper }}</span>
                                             {% endif %}
