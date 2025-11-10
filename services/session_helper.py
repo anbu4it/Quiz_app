@@ -6,5 +6,7 @@ class SessionHelper:
         session['questions'] = questions
         session['score'] = 0
         session['current_index'] = 0
+        # Ensure any prior completion flag is cleared to avoid skipping a new quiz save
+        session.pop('quiz_completed', None)
 
 

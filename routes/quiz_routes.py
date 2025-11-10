@@ -82,32 +82,8 @@ def show_question():
         current_index = session["current_index"]
 
         if current_index >= len(questions):
-            # Quiz finished — save score and show results
-            username = session.get("username", "User")
-            score = session.get("score", 0)
-            total = len(questions)
-            
-            # Save score for logged in users
-            if current_user.is_authenticated:
-                from models import db, Score
-                quiz_category = session.get("quiz_category", "General Knowledge")
-                quiz_score = Score(
-                    user_id=current_user.id,
-                    quiz_name=quiz_category,
-                    score=score,
-                    max_score=total
-                )
-                db.session.add(quiz_score)
-                try:
-                    db.session.commit()
-                except Exception as e:
-                    db.session.rollback()
-                    flash("Failed to save score: " + str(e), "error")
-            
-            return render_template("result.html",
-                                username=current_user.username if current_user.is_authenticated else username,
-                                score=score,
-                                total=total)
+            # Quiz finished — use PRG pattern: redirect to result page to avoid duplicate submissions
+            return redirect(url_for("result.result_page"))
 
     # show question at current_index
     question = questions[current_index]

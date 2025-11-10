@@ -26,19 +26,31 @@ def result_page():
         if score < 0 or score > total:
             raise ValueError("Score out of valid range")
 
-        # Save score if user is logged in
+        # Save score if user is logged in (guard against accidental duplicate by checking latest)
         if current_user.is_authenticated:
-            quiz_score = Score(
-                user_id=current_user.id,
-                quiz_name=quiz_category,
-                score=score,
-                max_score=total
-            )
-            db.session.add(quiz_score)
-            db.session.commit()
+            try:
+                last = (Score.query.filter_by(user_id=current_user.id, quiz_name=quiz_category)
+                                   .order_by(Score.date_taken.desc())
+                                   .first())
+            except Exception:
+                last = None
+            should_insert = True
+            if last and last.score == score and last.max_score == total:
+                # Heuristic: identical consecutive score for same quiz name within short time
+                # might be a refresh; skip insert
+                should_insert = False
+            if should_insert:
+                quiz_score = Score(
+                    user_id=current_user.id,
+                    quiz_name=quiz_category,
+                    score=score,
+                    max_score=total
+                )
+                db.session.add(quiz_score)
+                db.session.commit()
 
         # Clean up session data
-        session_keys = ["questions", "score", "current_question", "quiz_category", "answers"]
+        session_keys = ["questions", "score", "current_question", "quiz_category", "answers", "current_index"]
         for key in session_keys:
             session.pop(key, None)
 
