@@ -5,7 +5,7 @@ gunicorn==21.2.0
 flask-login==0.6.3
 flask-sqlalchemy==3.1.1
 flask-migrate==4.0.5
-werkzeug==3.0.1
+werkzeug>=3.1.0
 psycopg2-binary
 Flask-WTF==1.2.1
 python-dotenv==1.0.1
