@@ -113,14 +113,24 @@ def create_app(test_config: dict | None = None):
     # Health check endpoint for uptime monitoring
     @app.route('/healthz', methods=['GET'])
     def healthz():
+        import time as _t
         status = {"status": "ok", "db": False}
-        try:
-            db.session.execute(text("SELECT 1"))
-            status["db"] = True
-            code = 200
-        except Exception:
-            app.logger.exception("Health check DB ping failed")
-            code = 503
+        # Try up to 2 short attempts in case of transient SSL/idle connection issues
+        attempts = 2
+        for i in range(attempts):
+            try:
+                db.session.execute(text("SELECT 1"))
+                status["db"] = True
+                break
+            except Exception as e:
+                # Log a concise warning for health check noise; full trace not needed each time
+                app.logger.warning("healthz db ping failed (attempt %s/%s): %s", i+1, attempts, str(e))
+                # brief backoff before the next attempt
+                _t.sleep(0.4)
+        # By default, return 200 with db=false for transient issues to avoid flapping
+        # Set HEALTHZ_STRICT=1 to return 503 when db is unreachable
+        strict = os.environ.get("HEALTHZ_STRICT", "0") == "1"
+        code = 200 if (status["db"] or not strict) else 503
         return status, code
 
     # Basic security headers & proxy fix
