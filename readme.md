@@ -36,6 +36,19 @@ Start Command:
 
 Tip: On Render Free plan the service sleeps after ~15 minutes. First request may take 30–60s to wake up (cold start).
 
+### One-time DB initialization on Render
+
+Render runs `bash build.sh` on deploy, which executes `flask db upgrade` automatically. If needed, you can also run it manually from the Render Shell:
+
+```
+flask db upgrade
+```
+
+Troubleshooting:
+- Ensure DATABASE_URL is set to the Internal Database URL of your Render Postgres
+- Check Logs tab for build/start errors
+- Health check is available at `/healthz`
+
 ## Tests
 
 Run tests (optional):
