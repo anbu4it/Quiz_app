@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard | Quiz App{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="text-center mb-4">🏆 Quiz Leaderboards</h2>
+    
+    <!-- Navigation tabs -->
+    <ul class="nav nav-tabs mb-4" id="leaderboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="global-tab" data-bs-toggle="tab" data-bs-target="#global" 
+                    type="button" role="tab" aria-controls="global" aria-selected="true">
+                Global Rankings
+            </button>
+        </li>
+        {% for topic in leaderboards.keys() %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="{{ topic|replace(' ', '-')|lower }}-tab" 
+                    data-bs-toggle="tab" data-bs-target="#{{ topic|replace(' ', '-')|lower }}" 
+                    type="button" role="tab" 
+                    aria-controls="{{ topic|replace(' ', '-')|lower }}" aria-selected="false">
+                {{ topic }}
+            </button>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Tab content -->
+    <div class="tab-content" id="leaderboardContent">
+        <!-- Global Rankings Tab -->
+        <div class="tab-pane fade show active" id="global" role="tabpanel" aria-labelledby="global-tab">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>User</th>
+                                    <th>Total Quizzes</th>
+                                    <th>Average Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for performer in top_performers %}
+                                <tr class="{% if loop.index == 1 %}top-1{% elif loop.index == 2 %}top-2{% elif loop.index == 3 %}top-3{% endif %}">
+                                    <td class="fw-bold">{{ loop.index }}</td>
+                                    <td class="username-cell">
+                                        {% if performer.avatar %}
+                                            <img src="{{ url_for('static', filename=performer.avatar) }}" alt="{{ performer.username }}'s avatar" class="avatar-img" />
+                                        {% else %}
+                                            <span class="avatar">{{ performer.username[0]|upper }}</span>
+                                        {% endif %}
+                                        <div>
+                                            <div class="username-name">{{ performer.username }}</div>
+                                            <div class="username-meta text-muted small">{{ performer.total_quizzes }} quizzes</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ performer.total_quizzes }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="score-badge">{{ "%.2f"|format(performer.avg_percentage) }}%</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Topic-specific Tabs -->
+        {% for topic, scores in leaderboards.items() %}
+        <div class="tab-pane fade" id="{{ topic|replace(' ', '-')|lower }}" 
+             role="tabpanel" aria-labelledby="{{ topic|replace(' ', '-')|lower }}-tab">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Username</th>
+                                    <th>Best Score</th>
+                                    <th>Avg Score</th>
+                                    <th>Attempts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if scores %}
+                                    {% for score in scores %}
+                                    <tr class="{% if loop.index == 1 %}top-1{% elif loop.index == 2 %}top-2{% elif loop.index == 3 %}top-3{% endif %}">
+                                        <td class="fw-bold">{{ loop.index }}</td>
+                                        <td class="username-cell">
+                                            {% if score.avatar %}
+                                                <img src="{{ url_for('static', filename=score.avatar) }}" alt="{{ score.username }}'s avatar" class="avatar-img" />
+                                            {% else %}
+                                                <span class="avatar">{{ score.username[0]|upper }}</span>
+                                            {% endif %}
+                                            <div>
+                                                <div class="username-name">{{ score.username }}</div>
+                                                <div class="username-meta text-muted small">{{ score.attempts }} attempts</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="score-badge">{{ score.best_score }}%</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark">{{ score.avg_score }}%</span>
+                                        </td>
+                                        <td>{{ score.attempts }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4">
+                                            <div class="text-muted">
+                                                <i class="fas fa-trophy fa-2x mb-3"></i>
+                                                <p>Be the first to take this quiz!</p>
+                                                <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-sm">
+                                                    Start Quiz
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+}
+
+.nav-tabs .nav-link {
+    margin-bottom: -2px;
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    border: none;
+    color: #0d6efd;
+}
+
+.nav-tabs .nav-link.active {
+    border: none;
+    border-bottom: 2px solid #0d6efd;
+    color: #0d6efd;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-top: 1rem;
+}
+
+.table-primary {
+    background: linear-gradient(45deg, #007bff, #6610f2);
+    color: white;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0,123,255,0.1);
+}
+
+.table th {
+    font-weight: 600;
+}
+
+.table td, .table th {
+    padding: 12px;
+    vertical-align: middle;
+}
+/* Keep nav tabs on a single line and allow horizontal scrolling when many categories exist */
+.nav-tabs {
+    display: flex;
+    flex-wrap: nowrap; /* prevent tabs from wrapping to next line */
+    overflow-x: auto; /* enable horizontal scroll when needed */
+    overflow-y: hidden; /* hide any vertical scrollbar */
+    -webkit-overflow-scrolling: touch;
+}
+
+.nav-tabs .nav-item {
+    flex: 0 0 auto; /* keep each tab sized to its content */
+}
+
+.nav-tabs .nav-link {
+    white-space: nowrap; /* keep text on one line */
+}
+
+/* Small visual tweaks for the horizontal scrollbar */
+.nav-tabs {
+    scrollbar-width: thin; /* Firefox */
+}
+.nav-tabs::-webkit-scrollbar {
+    height: 8px; /* horizontal scrollbar height */
+}
+.nav-tabs::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.15);
+    border-radius: 4px;
+}
+.nav-tabs::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Leaderboard visual upgrades */
+.username-cell { display: flex; align-items: center; gap: 12px; }
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#6f42c1,#0d6efd);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(13,110,253,0.12);
+    flex: 0 0 44px;
+}
+.avatar-img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 2px 6px rgba(13,110,253,0.12);
+    flex: 0 0 44px;
+}
+.username-name { font-weight: 600; }
+.username-meta { font-size: 0.8rem; }
+.score-badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: linear-gradient(90deg,#00b09b,#96c93d);
+    color: #fff;
+    font-weight: 700;
+}
+.top-1 { background: linear-gradient(90deg, rgba(255,215,0,0.12), rgba(255,255,255,0)); }
+.top-2 { background: linear-gradient(90deg, rgba(192,192,192,0.08), rgba(255,255,255,0)); }
+.top-3 { background: linear-gradient(90deg, rgba(205,127,50,0.06), rgba(255,255,255,0)); }
+.table tbody tr { transition: transform 120ms ease, box-shadow 120ms ease; }
+.table tbody tr:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+
+/* Make table rows rounded on container */
+.table { border-collapse: separate; border-spacing: 0; }
+.table thead th:first-child { border-top-left-radius: 8px; }
+.table thead th:last-child { border-top-right-radius: 8px; }
+.table tbody tr:first-child td:first-child { border-top-left-radius: 8px; }
+.table tbody tr:first-child td:last-child { border-top-right-radius: 8px; }
+</style>
+{% endblock %}

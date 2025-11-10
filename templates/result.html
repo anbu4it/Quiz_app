@@ -1,110 +1,196 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Result | Flask Quiz</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}Result | Flask Quiz{% endblock %}
+
+{% block content %}
 <style>
-    /* Animated gradient background */
-    body {
-        min-height: 100vh;
-        margin: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #a18cd1, #fbc2eb);
-        background-size: 400% 400%;
-        animation: gradientBG 15s ease infinite;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .result-container {
+        max-width: 600px;
+        margin: 2rem auto;
     }
-
-    @keyframes gradientBG {
-        0% {background-position: 0% 50%;}
-        50% {background-position: 100% 50%;}
-        100% {background-position: 0% 50%;}
+    .score-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
     }
-
-    /* Result card */
-    .result-card {
-        max-width: 500px;
-        width: 90%;
-        padding: 40px 30px;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-        text-align: center;
-        position: relative;
-        z-index: 10;
-    }
-
     .score-text {
-        font-size: 2.5rem;
+        font-size: 3rem;
         font-weight: bold;
-        margin-top: 10px;
+        color: #2c3e50;
     }
-
-    .message {
-        
-        font-size: 1.2rem;
-        margin-top: 15px;
-        
-    }
-
     .progress {
         height: 25px;
         border-radius: 15px;
-        overflow: hidden;
-        margin-top: 20px;
-        background-color: #e9ecef;
+        margin: 1.5rem 0;
     }
-
-    .progress-bar {
-        transition: width 1s ease-in-out;
+    .message {
+        font-size: 1.2rem;
+        margin: 1.5rem 0;
     }
-
-    .btn-play-again {
-        margin-top: 25px;
-        border-radius: 50px;
-        padding: 10px 30px;
-        font-weight: bold;
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
     }
-
+    .btn-custom {
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .confetti {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        pointer-events: none;
+    }
 </style>
-</head>
-<body>
 
-<div class="result-card">
-    <h2 class="mb-3 text-primary">🎉 Well done, {{ username }}!</h2>
+<div class="result-container">
+    <div class="score-card text-center">
+        <h2 class="mb-4">
+            <span class="display-6">🎉 Well done,</span>
+            <br>
+            <span class="display-5 fw-bold text-primary">{{ username }}!</span>
+        </h2>
 
-    <div class="score-text text-success">{{ score }} / {{ total }}</div>
+        <div class="score-text mb-3">{{ score }} / {{ total }}</div>
 
-    <div class="progress">
-        <div class="progress-bar 
-            {% if score / total >= 0.7 %}bg-success
-            {% elif score / total >= 0.4 %}bg-warning
-            {% else %}bg-danger{% endif %}" 
-            role="progressbar" 
-            style="width: {{ (score / total * 100)|round(0) }}%;" 
-            aria-valuenow="{{ score }}" aria-valuemin="0" aria-valuemax="{{ total }}">
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated
+                {% if score / total >= 0.7 %}bg-success
+                {% elif score / total >= 0.4 %}bg-warning
+                {% else %}bg-danger{% endif %}" 
+                role="progressbar" 
+                style="width: {{ (score / total * 100)|round(0) }}%;">
+                {{ (score / total * 100)|round(0) }}%
+            </div>
+        </div>
+
+        <div class="message 
+            {% if score / total >= 0.7 %}text-success
+            {% elif score / total >= 0.4 %}text-warning
+            {% else %}text-danger{% endif %}">
+            {% if score / total >= 0.7 %}
+                🌟 Excellent performance! You're doing great!
+            {% elif score / total >= 0.4 %}
+                💪 Good effort! Keep practicing to improve!
+            {% else %}
+                😊 Don't worry, practice makes perfect!
+            {% endif %}
+        </div>
+
+        <div class="action-buttons">
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-custom">
+                Try Another Quiz �
+            </a>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-success btn-custom">
+                View Dashboard 📊
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-success btn-custom">
+                Sign Up to Track Progress 📈
+            </a>
+            {% endif %}
         </div>
     </div>
-
-    <div class="message 
-        {% if score / total >= 0.7 %}text-success
-        {% elif score / total >= 0.4 %}text-warning
-        {% else %}text-danger{% endif %}">
-        {% if score / total >= 0.7 %}
-            Excellent performance! 🌟
-        {% elif score / total >= 0.4 %}
-            Good job! Keep improving 💪
-        {% else %}
-            Don't worry, practice makes perfect 😄
-        {% endif %}
-    </div>
-
-    <a href="/" class="btn btn-outline-primary btn-play-again">Play Again 🔁</a>
 </div>
 
-</body>
-</html>
+{% if score / total >= 0.7 %}
+<canvas id="confetti" class="confetti"></canvas>
+<script>
+    // Simple confetti animation for high scores
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const confetti = [];
+    const confettiCount = 100;
+    const gravity = 0.5;
+    const terminalVelocity = 5;
+    const drag = 0.075;
+    const colors = [
+        { front: '#4285F4', back: '#3372C3' },
+        { front: '#EA4335', back: '#BC352A' },
+        { front: '#FBBC05', back: '#C89B04' },
+        { front: '#34A853', back: '#2A8644' }
+    ];
+
+    class Confetti {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.color = colors[Math.floor(Math.random() * colors.length)];
+            this.dimensions = {
+                x: Math.random() * 10 + 5,
+                y: Math.random() * 10 + 5
+            };
+            this.velocity = {
+                x: Math.random() * 6 - 3,
+                y: Math.random() * -15 - 15
+            };
+            this.rotation = Math.random() * 360;
+            this.rotationSpeed = Math.random() * 10 - 5;
+        }
+
+        update() {
+            this.velocity.x += Math.random() * 0.2 - 0.1;
+            this.velocity.y += gravity;
+            this.velocity.x *= (1 - drag);
+            this.velocity.y *= (1 - drag);
+            this.velocity.y = Math.min(this.velocity.y, terminalVelocity);
+
+            this.x += this.velocity.x;
+            this.y += this.velocity.y;
+            this.rotation += this.rotationSpeed;
+        }
+
+        draw() {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation * Math.PI / 180);
+
+            ctx.fillStyle = this.color.front;
+            ctx.fillRect(-this.dimensions.x / 2, -this.dimensions.y / 2, 
+                        this.dimensions.x, this.dimensions.y);
+
+            ctx.restore();
+        }
+    }
+
+    for (let i = 0; i < confettiCount; i++) {
+        confetti.push(new Confetti(Math.random() * canvas.width, -20));
+    }
+
+    let lastTime = performance.now();
+    function animate(currentTime) {
+        const deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        confetti.forEach((confetto, index) => {
+            confetto.update();
+            confetto.draw();
+
+            if (confetto.y > canvas.height) {
+                confetti.splice(index, 1);
+            }
+        });
+
+        if (confetti.length > 0) {
+            requestAnimationFrame(animate);
+        }
+    }
+
+    requestAnimationFrame(animate);
+</script>
+{% endif %}
+{% endblock %}

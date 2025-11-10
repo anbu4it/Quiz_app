@@ -1,54 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz | Flask Quiz</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        /* Fixed height for question box but no vertical centering */
-        .question-box {
-            min-height: 150px; /* reduced height for less space */
-            padding: 10px 0;
-        }
+{% extends "base.html" %}
 
-        /* Smooth transition for progress bar */
-        .progress-bar {
-            transition: width 0.7s ease-in-out;
-        }
-    </style>
-</head>
-<body class="bg-light">
-    <div class="container mt-5 d-flex justify-content-center">
-        <div class="card shadow p-4 col-md-6">
+{% block title %}Quiz | Flask Quiz{% endblock %}
 
-            <!-- Progress Bar on top -->
-            <div class="progress mb-3" style="height: 20px;">
-                <div class="progress-bar bg-info" role="progressbar"
-                     style="width: {{ previous_percentage }}%;"
-                     aria-valuenow="{{ previous_percentage }}" aria-valuemin="0" aria-valuemax="100">
+{% block content %}
+<style>
+    .question-box {
+        min-height: 150px;
+        padding: 10px 0;
+    }
+    .progress-bar {
+        transition: width 0.7s ease-in-out;
+    }
+    .options-container label {
+        display: block;
+        padding: 10px 15px;
+        margin: 8px 0;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .options-container label:hover {
+        background-color: #f8f9fa;
+    }
+    .options-container input[type="radio"]:checked + label {
+        background-color: #e3f2fd;
+        border-color: #90caf9;
+    }
+    .options-container input[type="radio"] {
+        display: none;
+    }
+</style>
+    <div class="container my-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-lg">
+                    <div class="card-body p-4">
+                        <!-- Progress Bar -->
+                        <div class="progress mb-4" style="height: 20px;">
+                            <div class="progress-bar bg-info" role="progressbar"
+                                 style="width: {{ previous_percentage }}%;"
+                                 aria-valuenow="{{ previous_percentage }}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+
+                        <!-- Question -->
+                        <div class="question-box text-center mb-4">
+                            <h4 class="fw-bold mb-3">Question {{ index }} of {{ total }}</h4>
+                            <p class="fs-5">{{ question.question | safe }}</p>
+                        </div>
+
+                        <!-- Options -->
+                        <form method="POST" action="{{ url_for('quiz.show_question') }}">
+                            <div class="options-container">
+                                {% for option in question.options %}
+                                    <div class="option">
+                                        <input type="radio" name="answer" 
+                                               value="{{ option }}" 
+                                               id="option{{ loop.index }}" required>
+                                        <label for="option{{ loop.index }}">
+                                            {{ option | safe }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    Next Question ➡️
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-
-            <div class="question-box text-center">
-                <h4 class="fw-bold mb-3">Question {{ index }} of {{ total }}</h4>
-                <p class="fs-5 mb-2">{{ question.question | safe }}</p>
-            </div>
-
-            <form method="POST" action="{{ url_for('quiz.show_question') }}">
-                {% for option in question.options %}
-                    <div class="form-check text-start mb-2">
-                        <input class="form-check-input" type="radio" name="answer" value="{{ option }}" id="{{ loop.index }}" required>
-                        <label class="form-check-label" for="{{ loop.index }}">{{ option | safe }}</label>
-                    </div>
-                {% endfor %}
-                <button type="submit" class="btn btn-success mt-3 px-4">Next ➡️</button>
-            </form>
         </div>
     </div>
 
     <script>
-        // Animate progress bar from previous_percentage to current_percentage
         document.addEventListener("DOMContentLoaded", () => {
             const progressBar = document.querySelector(".progress-bar");
             const targetWidth = {{ current_percentage }};
@@ -57,5 +87,4 @@
             }, 100);
         });
     </script>
-</body>
-</html>
+{% endblock %}

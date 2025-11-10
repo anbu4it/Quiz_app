@@ -1,5 +1,6 @@
 # routes/quiz_routes.py - handles quiz creation and question navigation
-from flask import Blueprint, request, redirect, url_for, render_template, session
+from flask import Blueprint, request, redirect, url_for, render_template, session, flash
+from flask_login import login_required, current_user
 from services.quiz_service import TriviaService
 from services.session_helper import SessionHelper
 
@@ -11,11 +12,26 @@ def quiz():
     Start a quiz: validate name & topics, fetch 5 questions and store in session,
     then redirect to /question.
     """
-    username = request.form.get("username", "").strip()
     selected_topics = request.form.getlist("topics")
+    
+    # Accept a single topic posted as `quiz_type` (used by tests or older forms)
+    if not selected_topics:
+        quiz_type = request.form.get('quiz_type')
+        if quiz_type:
+            selected_topics = [quiz_type]
 
-    if not username:
-        return "<h3>Please enter your name. <a href='/'>Go back</a></h3>", 400
+    if not selected_topics:
+        flash("Please select at least one topic.")
+        return redirect(url_for("main.index"))
+
+    # Use authenticated user's username if available, otherwise use form input
+    if current_user.is_authenticated:
+        username = current_user.username
+    else:
+        username = request.form.get("username", "").strip()
+        if not username:
+            flash("Please enter your name.")
+            return redirect(url_for("main.index"))
 
     if not selected_topics:
         return "<h3>Please select at least one topic. <a href='/'>Go back</a></h3>", 400
@@ -34,7 +50,8 @@ def quiz():
     if not questions:
         return "<h3>Unable to load quiz questions. Please try again later.</h3>", 503
 
-    # Save structured questions to session
+    # Save structured questions and category to session
+    session['quiz_category'] = selected_topics[0] if len(selected_topics) == 1 else 'Mixed Topics'
     SessionHelper.init_quiz_session(session, questions)
 
     return redirect(url_for("quiz.show_question"))
@@ -65,7 +82,32 @@ def show_question():
         current_index = session["current_index"]
 
         if current_index >= len(questions):
-            return redirect(url_for("result.result_page"))
+            # Quiz finished — save score and show results
+            username = session.get("username", "User")
+            score = session.get("score", 0)
+            total = len(questions)
+            
+            # Save score for logged in users
+            if current_user.is_authenticated:
+                from models import db, Score
+                quiz_category = session.get("quiz_category", "General Knowledge")
+                quiz_score = Score(
+                    user_id=current_user.id,
+                    quiz_name=quiz_category,
+                    score=score,
+                    max_score=total
+                )
+                db.session.add(quiz_score)
+                try:
+                    db.session.commit()
+                except Exception as e:
+                    db.session.rollback()
+                    flash("Failed to save score: " + str(e), "error")
+            
+            return render_template("result.html",
+                                username=current_user.username if current_user.is_authenticated else username,
+                                score=score,
+                                total=total)
 
     # show question at current_index
     question = questions[current_index]

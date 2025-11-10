@@ -1,57 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask Quiz | Home</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { 
-            background: linear-gradient(to right, #6a11cb, #2575fc); 
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-        }
-        .card {
-            border-radius: 15px;
-        }
-        .btn-primary {
-            background: #ff7e5f;
-            border: none;
-        }
-        .btn-primary:hover {
-            background: #eb4d3d;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="text-center mb-4">
-            <h1 class="fw-bold">🎯 Quiz App</h1>
+{% extends "base.html" %}
+
+{% block title %}Flask Quiz | Home{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <h1 class="display-4 fw-bold">🎯 Quiz App</h1>
+        {% if current_user.is_authenticated %}
+            <p class="lead">Welcome back, {{ current_user.username }}! Ready for another challenge?</p>
+        {% else %}
             <p class="lead">Enter your name and select topics to start your challenge!</p>
-        </div>
-
-        <form action="/quiz" method="POST" class="card p-4 shadow-lg mx-auto col-md-6 bg-white text-dark">
-            <div class="mb-3">
-                <label for="username" class="form-label fw-bold">Your Name:</label>
-                <input type="text" id="username" name="username" class="form-control" placeholder="Enter your name" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label fw-bold">Select Topics:</label><br>
-                {% for topic in topics %}
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" name="topics" value="{{ topic }}" id="{{ topic }}">
-                        <label class="form-check-label" for="{{ topic }}">{{ topic }}</label>
-                    </div>
-                {% endfor %}
-            </div>
-
-            <div class="text-center">
-                <button type="submit" class="btn btn-primary btn-lg mt-3">Start Quiz 🚀</button>
-            </div>
-        </form>
+        {% endif %}
     </div>
-</body>
-</html>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg">
+                <div class="card-body p-4">
+                    <form action="{{ url_for('quiz.quiz') }}" method="POST">
+                        {% if not current_user.is_authenticated %}
+                        <div class="mb-4">
+                            <label for="username" class="form-label">Your Name</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-4">
+                            <label class="form-label">Select Topics</label>
+                            <div class="row row-cols-1 row-cols-md-2 g-3">
+                                {% for topic in topics %}
+                                <div class="col">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="topics" 
+                                               value="{{ topic }}" id="{{ topic }}">
+                                        <label class="form-check-label" for="{{ topic }}">
+                                            {{ topic }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Start Quiz 🚀
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

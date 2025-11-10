@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Profile | Quiz App{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title mb-3">Your Profile</h3>
+
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            {% if current_user.avatar %}
+                                <img src="{{ url_for('static', filename=current_user.avatar) }}" alt="avatar" class="rounded-circle" width="96" height="96">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:96px;height:96px;font-weight:700;font-size:28px;">
+                                    {{ current_user.username[0]|upper }}
+                                </div>
+                            {% endif %}
+
+                            <div>
+                                <label class="form-label">Change profile picture</label>
+                                <input type="file" name="avatar" class="form-control form-control-sm">
+                                <div class="form-text">Max 2MB. Supported: png, jpg, jpeg, gif</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Full name</label>
+                            <input type="text" name="full_name" class="form-control" value="{{ current_user.full_name or '' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Bio</label>
+                            <textarea name="bio" class="form-control" rows="4">{{ current_user.bio or '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input class="form-check-input" type="checkbox" value="1" id="removeAvatar" name="remove_avatar">
+                            <label class="form-check-label" for="removeAvatar">Remove current profile picture</label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary">Save changes</button>
+                            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card img { object-fit: cover; }
+</style>
+{% endblock %}
