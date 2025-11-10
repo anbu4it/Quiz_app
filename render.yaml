@@ -1,0 +1,53 @@
+# Render.com Blueprint Configuration
+# This file automates your Render deployment with all environment variables documented
+# Render will read this file and configure your service automatically
+
+services:
+  - type: web
+    name: quiz-app
+    runtime: python
+    region: oregon
+    plan: free
+    branch: main
+    
+    buildCommand: pip install -r requirements.txt && bash build.sh
+    startCommand: gunicorn app:app
+    
+    envVars:
+      - key: SECRET_KEY
+        sync: false  # Must be set manually in Render dashboard (never commit real secrets)
+      
+      - key: DATABASE_URL
+        fromDatabase:
+          name: quiz-app-database
+          property: connectionString
+      
+      - key: SESSION_COOKIE_SECURE
+        value: "1"
+      
+      - key: REMEMBER_COOKIE_SECURE
+        value: "1"
+      
+      - key: SESSION_COOKIE_SAMESITE
+        value: "Strict"
+      
+      - key: PREFERRED_URL_SCHEME
+        value: "https"
+      
+      - key: FLASK_DEBUG
+        value: "0"
+      
+      - key: WEB_CONCURRENCY
+        value: "2"
+      
+      - key: LOG_LEVEL
+        value: "info"
+      
+      - key: REQUEST_TIMEOUT_SECONDS
+        value: "10"
+
+databases:
+  - name: quiz-app-database
+    databaseName: quiz_app
+    plan: free
+    region: oregon

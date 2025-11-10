@@ -18,6 +18,7 @@
             <div class="card shadow-lg">
                 <div class="card-body p-4">
                     <form action="{{ url_for('quiz.quiz') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         {% if not current_user.is_authenticated %}
                         <div class="mb-4">
                             <label for="username" class="form-label">Your Name</label>

@@ -53,6 +53,7 @@
 
                         <!-- Options -->
                         <form method="POST" action="{{ url_for('quiz.show_question') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                             <div class="options-container">
                                 {% for option in question.options %}
                                     <div class="option">
