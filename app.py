@@ -128,6 +128,11 @@ def create_app(test_config: dict | None = None):
                 app.logger.warning("healthz db ping failed (attempt %s/%s): %s", i+1, attempts, str(e))
                 # brief backoff before the next attempt
                 _t.sleep(0.4)
+                try:
+                    # dispose engine to force new connections in next attempt
+                    db.engine.dispose()
+                except Exception:
+                    pass
         # By default, return 200 with db=false for transient issues to avoid flapping
         # Set HEALTHZ_STRICT=1 to return 503 when db is unreachable
         strict = os.environ.get("HEALTHZ_STRICT", "0") == "1"
@@ -152,9 +157,11 @@ def create_app(test_config: dict | None = None):
         if xf_proto:
             request.environ['wsgi.url_scheme'] = xf_proto
 
-    # Basic logging configuration
-    if not app.debug:
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(message)s')
+    # Basic logging configuration with LOG_LEVEL override
+    log_level_name = os.getenv('LOG_LEVEL', 'INFO').upper()
+    level = getattr(logging, log_level_name, logging.INFO)
+    logging.basicConfig(level=level, format='%(asctime)s %(levelname)s %(name)s %(message)s')
+    app.logger.info("startup log_level=%s db_url_scheme=%s", log_level_name, app.config['SQLALCHEMY_DATABASE_URI'].split(':')[0])
 
     return app
 
