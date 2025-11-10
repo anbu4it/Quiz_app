@@ -10,6 +10,7 @@ from models import db, User
 from pathlib import Path
 from sqlalchemy import text, inspect
 import logging
+import os
 
 # Import blueprints
 from routes.main_routes import main_bp
