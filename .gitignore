@@ -11,7 +11,8 @@ venv/
 
 # Environment files
 .env
-.env.*
+.env.local
+.env.production
 
 # Local instance data
 instance/
