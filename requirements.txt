@@ -9,6 +9,7 @@ psycopg2-binary
 Flask-WTF==1.2.1
 python-dotenv==1.0.1
 pytest==8.3.3
+pytest-cov==5.0.0
 Flask-Session==0.6.0
 cloudinary==1.41.0
 black==24.10.0

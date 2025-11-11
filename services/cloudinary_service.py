@@ -1,6 +1,7 @@
 """Cloudinary service for avatar uploads with fallback to local storage."""
 
 import os
+from typing import Optional
 
 import cloudinary
 import cloudinary.uploader
@@ -73,9 +74,6 @@ def upload_avatar(file, user_id: int) -> str:
 
     # Return relative path for local storage
     return f"uploads/{safe_name}"
-
-
-from typing import Optional
 
 
 def delete_avatar(avatar_url_or_path: Optional[str]) -> bool:

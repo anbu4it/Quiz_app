@@ -1,6 +1,5 @@
-import os
-# services/trivia_service.py - encapsulates Open Trivia API logic and retries/fallbacks
 import html
+import os
 import random
 from typing import Any, Dict, List, Optional, cast
 

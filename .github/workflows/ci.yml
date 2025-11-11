@@ -1,5 +1,9 @@
 name: CI Pipeline
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [ main, develop ]
@@ -29,7 +33,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
@@ -65,9 +69,23 @@ jobs:
       run: |
         flask db upgrade
 
-    - name: Run tests with pytest
+    - name: Run tests with pytest (coverage + junit)
       run: |
-        pytest -v --tb=short
+        pytest -v --tb=short --cov=./ --cov-report=xml --cov-report=term --junitxml=test-results.xml
+
+    - name: Upload coverage artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-xml
+        path: coverage.xml
+
+    - name: Upload test results artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: junit-results
+        path: test-results.xml
 
     - name: Report test results
       if: always()

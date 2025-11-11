@@ -1,6 +1,7 @@
 import os
 import re
 import time
+from typing import Dict, List
 
 from flask import (
     Blueprint,
@@ -18,7 +19,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 from models import Score, User, db
-from typing import Dict, List
 from services.cloudinary_service import delete_avatar, is_cloudinary_url, upload_avatar
 
 # Upload settings

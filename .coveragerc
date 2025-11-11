@@ -1,0 +1,14 @@
+[run]
+omit =
+    */migrations/*
+    */tests/*
+    */venv/*
+    */.venv/*
+    */instance/*
+
+[report]
+# Hide lines that are fine to miss
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:
+    if __name__ == .__main__.
