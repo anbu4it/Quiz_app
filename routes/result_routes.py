@@ -29,14 +29,24 @@ def result_page():
     # Wrap database operations separately so failures don't prevent result display
     if current_user.is_authenticated:
         try:
+            from datetime import datetime, timezone, timedelta
+            
             last = (Score.query.filter_by(user_id=current_user.id, quiz_name=quiz_category)
                                .order_by(Score.date_taken.desc())
                                .first())
             should_insert = True
+            
+            # Only skip if identical score was submitted within last 5 seconds (likely a refresh)
             if last and last.score == score and last.max_score == total:
-                # Heuristic: identical consecutive score for same quiz name within short time
-                # might be a refresh; skip insert
-                should_insert = False
+                time_diff = datetime.now(timezone.utc) - last.date_taken
+                if time_diff.total_seconds() < 5:
+                    should_insert = False
+                    try:
+                        from flask import current_app
+                        current_app.logger.info(f"Skipping duplicate score for user {current_user.id} (submitted {time_diff.total_seconds():.1f}s ago)")
+                    except Exception:
+                        pass
+            
             if should_insert:
                 quiz_score = Score(
                     user_id=current_user.id,
@@ -46,6 +56,11 @@ def result_page():
                 )
                 db.session.add(quiz_score)
                 db.session.commit()
+                try:
+                    from flask import current_app
+                    current_app.logger.info(f"Score saved: User {current_user.username} - {quiz_category}: {score}/{total}")
+                except Exception:
+                    pass
         except Exception as e:
             # Log error but don't prevent result display
             db.session.rollback()

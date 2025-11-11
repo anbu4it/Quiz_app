@@ -269,7 +269,8 @@ body{
 [data-theme="dark"] .bg-success{ background-color: #4ade80 !important; }
 [data-theme="dark"] .bg-warning{ background-color: #fbbf24 !important; }
 [data-theme="dark"] .bg-danger{ background-color: #ef4444 !important; }
-/* Fix result page buttons visibility in dark mode */
+/* Fix button visibility in dark mode */
+[data-theme="dark"] .btn-primary{ background: linear-gradient(90deg, var(--brand), #8b5cf6); color: #ffffff !important; border-color: transparent; }
 [data-theme="dark"] .actions .btn-primary{ background: linear-gradient(90deg, var(--brand), #8b5cf6); color: #ffffff !important; }
 [data-theme="dark"] .actions .btn-outline-primary{ color: var(--brand) !important; border-color: var(--brand); }
 [data-theme="dark"] .actions .btn-outline-primary:hover{ background-color: var(--brand); color: #ffffff !important; }
