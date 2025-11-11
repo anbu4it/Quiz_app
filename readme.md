@@ -1,6 +1,6 @@
-# Flask Quiz App
+# BrainRush
 
-Modern, theme-aware quiz application built with Flask, Bootstrap 5, and SQLAlchemy.
+Modern, theme-aware quiz platform built with Flask, Bootstrap 5, and SQLAlchemy.
 
 Highlights:
 - Light/dark themes with smooth gradients and soft shadows

@@ -1,6 +1,6 @@
 {
-  "name": "Flask Quiz App",
-  "short_name": "Quiz App",
+  "name": "BrainRush",
+  "short_name": "BrainRush",
   "description": "Test your knowledge with interactive quizzes",
   "start_url": "/",
   "display": "standalone",

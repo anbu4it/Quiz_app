@@ -1,5 +1,5 @@
-// Global frontend enhancements for Quiz App
-console.log("quiz app frontend loaded");
+// Global frontend enhancements for BrainRush
+console.log("BrainRush frontend loaded");
 
 // Smooth scroll for internal anchor links
 document.querySelectorAll('a[href^="#"]').forEach(a=>{
