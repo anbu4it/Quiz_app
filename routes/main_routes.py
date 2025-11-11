@@ -1,5 +1,6 @@
 # routes/main_routes.py - homepage / topic selection
 from flask import Blueprint, render_template
+
 # Categories mapping (same labels as used in services.trivia_service)
 TOPICS = [
     "General Knowledge",
@@ -10,10 +11,11 @@ TOPICS = [
     "History",
     "Geography",
     "Art",
-    "Celebrities"
+    "Celebrities",
 ]
 
 main_bp = Blueprint("main", __name__)
+
 
 @main_bp.route("/", methods=["GET"])
 def index():

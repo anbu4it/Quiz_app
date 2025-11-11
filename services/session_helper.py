@@ -3,10 +3,8 @@
 class SessionHelper:
     @staticmethod
     def init_quiz_session(session, questions):
-        session['questions'] = questions
-        session['score'] = 0
-        session['current_index'] = 0
+        session["questions"] = questions
+        session["score"] = 0
+        session["current_index"] = 0
         # Ensure any prior completion flag is cleared to avoid skipping a new quiz save
-        session.pop('quiz_completed', None)
-
-
+        session.pop("quiz_completed", None)

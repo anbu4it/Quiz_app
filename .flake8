@@ -1,0 +1,12 @@
+[flake8]
+max-line-length = 100
+extend-ignore = E203, W503
+exclude = .git, __pycache__, venv, .venv, migrations, instance, tests, scripts
+per-file-ignores =
+	app.py: E501
+	routes/auth_routes.py: E501, F841
+	routes/result_routes.py: E501
+	routes/quiz_routes.py: E501
+	services/cloudinary_service.py: E501
+	services/quiz_service.py: E501
+	clear_database.py: E402

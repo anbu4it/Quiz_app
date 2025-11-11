@@ -1,8 +1,10 @@
-from flask_login import UserMixin
-from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timezone
 
+from flask_login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
+
 db = SQLAlchemy()
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -12,13 +14,16 @@ class User(UserMixin, db.Model):
     full_name = db.Column(db.String(120), nullable=True)
     bio = db.Column(db.String(500), nullable=True)
     avatar = db.Column(db.String(256), nullable=True)  # filename stored in static/uploads
-    scores = db.relationship('Score', backref='user', lazy=True)
+    scores = db.relationship("Score", backref="user", lazy=True)
+
 
 class Score(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     quiz_name = db.Column(db.String(100), nullable=False)
     score = db.Column(db.Integer, nullable=False)
     max_score = db.Column(db.Integer, nullable=False)
     # Use timezone-aware UTC timestamps to avoid deprecation warnings and ambiguity
-    date_taken = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    date_taken = db.Column(
+        db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
+    )

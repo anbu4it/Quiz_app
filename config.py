@@ -3,11 +3,12 @@ import os
 from pathlib import Path
 
 # Create instance folder if it doesn't exist
-INSTANCE_PATH = Path(__file__).parent / 'instance'
+INSTANCE_PATH = Path(__file__).parent / "instance"
 INSTANCE_PATH.mkdir(exist_ok=True)
 
 # Database file will be stored in the instance folder
-DB_PATH = INSTANCE_PATH / 'quiz.db'
+DB_PATH = INSTANCE_PATH / "quiz.db"
+
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey")
@@ -24,7 +25,7 @@ class Config:
         "pool_recycle": int(os.getenv("SQLALCHEMY_POOL_RECYCLE", "280")),
         "pool_timeout": int(os.getenv("SQLALCHEMY_POOL_TIMEOUT", "10")),
     }
-    
+
     # Cookie/session security (tunable via env for local vs prod)
     # Default to safe values; override with env vars as needed
     SESSION_COOKIE_HTTPONLY = True
@@ -33,6 +34,6 @@ class Config:
     # Don't force Secure cookies locally unless explicitly enabled
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "0") == "1"
     REMEMBER_COOKIE_SECURE = os.getenv("REMEMBER_COOKIE_SECURE", "0") == "1"
-    
+
     # Preferred scheme for URL generation in prod behind HTTPS
     PREFERRED_URL_SCHEME = os.getenv("PREFERRED_URL_SCHEME", "https")

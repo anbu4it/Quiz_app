@@ -11,3 +11,8 @@ python-dotenv==1.0.1
 pytest==8.3.3
 Flask-Session==0.6.0
 cloudinary==1.41.0
+black==24.10.0
+flake8==7.1.1
+isort==5.13.2
+mypy==1.11.2
+types-requests==2.32.0.20241016

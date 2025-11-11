@@ -40,6 +40,16 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Lint (Black, Isort, Flake8)
+      run: |
+        black --check .
+        isort --check-only .
+        flake8 .
+
+    - name: Type check (mypy)
+      run: |
+        mypy services/quiz_service.py
+
     - name: Set environment variables
       run: |
         echo "SECRET_KEY=test-secret-key-for-ci" >> $GITHUB_ENV

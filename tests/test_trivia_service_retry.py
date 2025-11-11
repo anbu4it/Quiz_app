@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import Mock
+
+import pytest
+
 from services.quiz_service import TriviaService
 
 
@@ -25,9 +27,17 @@ def test_fetch_retry_success(monkeypatch):
         # Fail first two attempts, succeed on third
         if attempts["count"] < 3:
             raise Exception("network error")
-        return DummyResponse({"results": [
-            {"question": "Test Q?", "correct_answer": "A", "incorrect_answers": ["B", "C", "D"]}
-        ]})
+        return DummyResponse(
+            {
+                "results": [
+                    {
+                        "question": "Test Q?",
+                        "correct_answer": "A",
+                        "incorrect_answers": ["B", "C", "D"],
+                    }
+                ]
+            }
+        )
 
     monkeypatch.setattr("services.quiz_service.requests.get", fake_get)
 
@@ -39,6 +49,7 @@ def test_fetch_retry_success(monkeypatch):
 
 def test_fetch_all_fail(monkeypatch):
     """When all attempts fail, _fetch returns empty list."""
+
     def fake_get(url, params=None, timeout=None):
         raise Exception("persistent failure")
 

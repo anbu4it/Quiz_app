@@ -1,5 +1,7 @@
 import re
+
 import pytest
+
 from app import create_app, db
 
 
@@ -17,22 +19,24 @@ def test_registration_with_csrf_enabled():
         db.create_all()
 
     # GET register to obtain CSRF token
-    get_resp = client.get('/register')
+    get_resp = client.get("/register")
     assert get_resp.status_code == 200
     token = _extract_csrf(get_resp.get_data(as_text=True))
     assert token, "csrf_token not found in register form"
 
     # POST valid registration payload
     payload = {
-        'csrf_token': token,
-        'username': 'reg_user_csrf',
-        'email': 'reg_user_csrf@example.com',
-        'password': 'Password1!',
-        'confirm_password': 'Password1!'
+        "csrf_token": token,
+        "username": "reg_user_csrf",
+        "email": "reg_user_csrf@example.com",
+        "password": "Password1!",
+        "confirm_password": "Password1!",
     }
-    post_resp = client.post('/register', data=payload, follow_redirects=True)
+    post_resp = client.post("/register", data=payload, follow_redirects=True)
     assert post_resp.status_code == 200
     # After successful registration, dashboard should be accessible
     # Allow redirect chain so any auto-login fallback can occur under pytest
-    dash = client.get('/dashboard', follow_redirects=True)
-    assert dash.status_code == 200, "Dashboard not accessible after registration; session/cookies may not be set"
+    dash = client.get("/dashboard", follow_redirects=True)
+    assert (
+        dash.status_code == 200
+    ), "Dashboard not accessible after registration; session/cookies may not be set"

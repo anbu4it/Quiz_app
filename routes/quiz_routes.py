@@ -1,10 +1,12 @@
 # routes/quiz_routes.py - handles quiz creation and question navigation
-from flask import Blueprint, request, redirect, url_for, render_template, session, flash
-from flask_login import login_required, current_user
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask_login import current_user
+
 from services.quiz_service import TriviaService
 from services.session_helper import SessionHelper
 
 quiz_bp = Blueprint("quiz", __name__)
+
 
 @quiz_bp.route("/quiz", methods=["POST"])
 def quiz():
@@ -13,10 +15,10 @@ def quiz():
     then redirect to /question.
     """
     selected_topics = request.form.getlist("topics")
-    
+
     # Accept a single topic posted as `quiz_type` (used by tests or older forms)
     if not selected_topics:
-        quiz_type = request.form.get('quiz_type')
+        quiz_type = request.form.get("quiz_type")
         if quiz_type:
             selected_topics = [quiz_type]
 
@@ -51,7 +53,7 @@ def quiz():
         return "<h3>Unable to load quiz questions. Please try again later.</h3>", 503
 
     # Save structured questions and category to session
-    session['quiz_category'] = selected_topics[0] if len(selected_topics) == 1 else 'Mixed Topics'
+    session["quiz_category"] = selected_topics[0] if len(selected_topics) == 1 else "Mixed Topics"
     SessionHelper.init_quiz_session(session, questions)
 
     return redirect(url_for("quiz.show_question"))
@@ -98,5 +100,5 @@ def show_question():
         index=current_index + 1,
         total=total_questions,
         current_percentage=current_percentage,
-        previous_percentage=previous_percentage
+        previous_percentage=previous_percentage,
     )
