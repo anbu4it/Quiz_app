@@ -38,7 +38,6 @@
                                 <tr>
                                     <th>Rank</th>
                                     <th>User</th>
-                                    <th>Total Quizzes</th>
                                     <th>Average Score</th>
                                 </tr>
                             </thead>
@@ -56,9 +55,6 @@
                                             <div class="username-name">{{ performer.username }}</div>
                                             <div class="username-meta text-muted small">{{ performer.total_quizzes }} quizzes</div>
                                         </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary">{{ performer.total_quizzes }}</span>
                                     </td>
                                     <td>
                                         <span class="score-badge">{{ "%.2f"|format(performer.avg_percentage) }}%</span>
