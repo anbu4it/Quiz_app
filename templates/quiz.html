@@ -3,89 +3,74 @@
 {% block title %}Quiz | Flask Quiz{% endblock %}
 
 {% block content %}
-<style>
-    .question-box {
-        min-height: 150px;
-        padding: 10px 0;
-    }
-    .progress-bar {
-        transition: width 0.7s ease-in-out;
-    }
-    .options-container label {
-        display: block;
-        padding: 10px 15px;
-        margin: 8px 0;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    .options-container label:hover {
-        background-color: #f8f9fa;
-    }
-    .options-container input[type="radio"]:checked + label {
-        background-color: #e3f2fd;
-        border-color: #90caf9;
-    }
-    .options-container input[type="radio"] {
-        display: none;
-    }
-</style>
-    <div class="container my-4">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="card shadow-lg">
-                    <div class="card-body p-4">
-                        <!-- Progress Bar -->
-                        <div class="progress mb-4" style="height: 20px;">
-                            <div class="progress-bar bg-info" role="progressbar"
-                                 style="width: {{ previous_percentage }}%;"
-                                 aria-valuenow="{{ previous_percentage }}" 
-                                 aria-valuemin="0" aria-valuemax="100">
-                            </div>
-                        </div>
-
-                        <!-- Question -->
-                        <div class="question-box text-center mb-4">
-                            <h4 class="fw-bold mb-3">Question {{ index }} of {{ total }}</h4>
-                            <p class="fs-5">{{ question.question | safe }}</p>
-                        </div>
-
-                        <!-- Options -->
-                        <form method="POST" action="{{ url_for('quiz.show_question') }}">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                            <div class="options-container">
-                                {% for option in question.options %}
-                                    <div class="option">
-                                        <input type="radio" name="answer" 
-                                               value="{{ option }}" 
-                                               id="option{{ loop.index }}" required>
-                                        <label for="option{{ loop.index }}">
-                                            {{ option | safe }}
-                                        </label>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            
-                            <div class="d-grid gap-2 mt-4">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    Next Question ➡️
-                                </button>
-                            </div>
-                        </form>
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <!-- Progress Bar -->
+                    <div class="d-flex align-items-center justify-content-between mb-2 small text-muted">
+                        <span>Question {{ index }} of {{ total }}</span>
+                        <span>{{ current_percentage|round(0) }}%</span>
                     </div>
+                                <div class="progress mb-4" style="height: 10px;">
+                                    <div 
+                                        class="progress-bar bg-info" 
+                                        role="progressbar" 
+                                        style="width: 0%;"
+                                        data-prev="{{ previous_percentage|tojson }}"
+                                        data-curr="{{ current_percentage|tojson }}"
+                                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+
+                    <!-- Question -->
+                    <div class="question-box mb-3">
+                        <div class="question-skeleton skeleton mb-3" style="height: 24px; width: 60%;"></div>
+                        <div class="question-skeleton skeleton mb-2" style="height: 16px; width: 90%;"></div>
+                        <div class="question-skeleton skeleton mb-4" style="height: 16px; width: 80%;"></div>
+                        <h4 class="fw-bold mb-3">{{ question.category or 'Question' }}</h4>
+                        <p class="fs-5">{{ question.question | safe }}</p>
+                    </div>
+
+                    <!-- Options -->
+                    <form method="POST" action="{{ url_for('quiz.show_question') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <div class="options-container">
+                            {% for option in question.options %}
+                            <div class="option">
+                                <input type="radio" name="answer" value="{{ option }}" id="option{{ loop.index }}" required>
+                                <label for="option{{ loop.index }}">{{ option | safe }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Next Question ➡️</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const progressBar = document.querySelector(".progress-bar");
-            const targetWidth = {{ current_percentage }};
-            setTimeout(() => {
-                progressBar.style.width = targetWidth + "%";
-            }, 100);
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const bar = document.querySelector('.progress-bar');
+            if(!bar) return;
+            const prev = Number(bar.dataset.prev) || 0;
+            const curr = Number(bar.dataset.curr) || 0;
+            // Set initial width without transition jump
+            bar.style.width = prev + '%';
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    bar.style.width = curr + '%';
+                    bar.setAttribute('aria-valuenow', String(curr));
+                }, 50);
+            });
+            // Hide question skeletons once DOM is ready to simulate quick hydration
+            document.querySelectorAll('.question-skeleton').forEach(el => {
+              setTimeout(() => { el.style.display = 'none'; }, 150);
+            });
         });
-    </script>
+</script>
 {% endblock %}

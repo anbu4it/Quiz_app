@@ -1,81 +1,20 @@
 {% extends "base.html" %}
-
-{% block title %}Result | Flask Quiz{% endblock %}
-
 {% block content %}
-<style>
-    .result-container {
-        max-width: 600px;
-        margin: 2rem auto;
-    }
-    .score-card {
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 2rem;
-    }
-    .score-text {
-        font-size: 3rem;
-        font-weight: bold;
-        color: #2c3e50;
-    }
-    .progress {
-        height: 25px;
-        border-radius: 15px;
-        margin: 1.5rem 0;
-    }
-    .message {
-        font-size: 1.2rem;
-        margin: 1.5rem 0;
-    }
-    .action-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin-top: 2rem;
-    }
-    .btn-custom {
-        padding: 0.75rem 1.5rem;
-        border-radius: 25px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    .confetti {
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        z-index: -1;
-        pointer-events: none;
-    }
-</style>
 
-<div class="result-container">
-    <div class="score-card text-center">
-        <h2 class="mb-4">
-            <span class="display-6">🎉 Well done,</span>
-            <br>
-            <span class="display-5 fw-bold text-primary">{{ username }}!</span>
-        </h2>
-
-        <div class="score-text mb-3">{{ score }} / {{ total }}</div>
-
-        <div class="progress">
-            <div class="progress-bar progress-bar-striped progress-bar-animated
-                {% if score / total >= 0.7 %}bg-success
-                {% elif score / total >= 0.4 %}bg-warning
-                {% else %}bg-danger{% endif %}" 
-                role="progressbar" 
-                style="width: {{ (score / total * 100)|round(0) }}%;">
-                {{ (score / total * 100)|round(0) }}%
-            </div>
+<div class="result-wrap">
+    <div class="result-card p-4 p-md-5 text-center">
+        <div class="mb-3"><span class="pill">Quiz completed</span></div>
+        <h2 class="mb-2">Great job, <span class="brand-gradient">{{ username }}</span>!</h2>
+        <div class="score-big mb-1" id="scoreText" data-score="{{ score }}" data-total="{{ total }}">{{ score }} / {{ total }}</div>
+        <div class="small text-muted">Your accuracy</div>
+        <div class="progress my-3" aria-label="Score accuracy">
+            <div class="progress-bar {% if score / total >= 0.7 %}bg-success{% elif score / total >= 0.4 %}bg-warning{% else %}bg-danger{% endif %}" style="width: 0%" data-target="{{ (score / total * 100)|round(0) }}"></div>
+        </div>
+        <div class="mb-3">
+            <span class="fw-semibold" id="percentText">{{ (score / total * 100)|round(0) }}%</span>
         </div>
 
-        <div class="message 
-            {% if score / total >= 0.7 %}text-success
-            {% elif score / total >= 0.4 %}text-warning
-            {% else %}text-danger{% endif %}">
+        <p class="lead mb-3 {% if score / total >= 0.7 %}text-success{% elif score / total >= 0.4 %}text-warning{% else %}text-danger{% endif %}">
             {% if score / total >= 0.7 %}
                 🌟 Excellent performance! You're doing great!
             {% elif score / total >= 0.4 %}
@@ -83,114 +22,114 @@
             {% else %}
                 😊 Don't worry, practice makes perfect!
             {% endif %}
-        </div>
+        </p>
 
-        <div class="action-buttons">
-            <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-custom">
-                Try Another Quiz �
-            </a>
+        <div class="actions d-flex flex-wrap gap-2 justify-content-center mt-4">
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary">Try another quiz 🚀</a>
             {% if current_user.is_authenticated %}
-            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-success btn-custom">
-                View Dashboard 📊
-            </a>
+            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-primary">View dashboard 📊</a>
             {% else %}
-            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-success btn-custom">
-                Sign Up to Track Progress 📈
-            </a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-success">Sign up to track progress 📈</a>
             {% endif %}
+            <button type="button" class="btn btn-outline-secondary" id="btnShare">Share score</button>
         </div>
     </div>
 </div>
 
 {% if score / total >= 0.7 %}
-<canvas id="confetti" class="confetti"></canvas>
-<script>
-    // Simple confetti animation for high scores
-    const canvas = document.getElementById('confetti');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const confetti = [];
-    const confettiCount = 100;
-    const gravity = 0.5;
-    const terminalVelocity = 5;
-    const drag = 0.075;
-    const colors = [
-        { front: '#4285F4', back: '#3372C3' },
-        { front: '#EA4335', back: '#BC352A' },
-        { front: '#FBBC05', back: '#C89B04' },
-        { front: '#34A853', back: '#2A8644' }
-    ];
-
-    class Confetti {
-        constructor(x, y) {
-            this.x = x;
-            this.y = y;
-            this.color = colors[Math.floor(Math.random() * colors.length)];
-            this.dimensions = {
-                x: Math.random() * 10 + 5,
-                y: Math.random() * 10 + 5
-            };
-            this.velocity = {
-                x: Math.random() * 6 - 3,
-                y: Math.random() * -15 - 15
-            };
-            this.rotation = Math.random() * 360;
-            this.rotationSpeed = Math.random() * 10 - 5;
-        }
-
-        update() {
-            this.velocity.x += Math.random() * 0.2 - 0.1;
-            this.velocity.y += gravity;
-            this.velocity.x *= (1 - drag);
-            this.velocity.y *= (1 - drag);
-            this.velocity.y = Math.min(this.velocity.y, terminalVelocity);
-
-            this.x += this.velocity.x;
-            this.y += this.velocity.y;
-            this.rotation += this.rotationSpeed;
-        }
-
-        draw() {
-            ctx.save();
-            ctx.translate(this.x, this.y);
-            ctx.rotate(this.rotation * Math.PI / 180);
-
-            ctx.fillStyle = this.color.front;
-            ctx.fillRect(-this.dimensions.x / 2, -this.dimensions.y / 2, 
-                        this.dimensions.x, this.dimensions.y);
-
-            ctx.restore();
-        }
-    }
-
-    for (let i = 0; i < confettiCount; i++) {
-        confetti.push(new Confetti(Math.random() * canvas.width, -20));
-    }
-
-    let lastTime = performance.now();
-    function animate(currentTime) {
-        const deltaTime = currentTime - lastTime;
-        lastTime = currentTime;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        confetti.forEach((confetto, index) => {
-            confetto.update();
-            confetto.draw();
-
-            if (confetto.y > canvas.height) {
-                confetti.splice(index, 1);
-            }
-        });
-
-        if (confetti.length > 0) {
-            requestAnimationFrame(animate);
-        }
-    }
-
-    requestAnimationFrame(animate);
-</script>
+<canvas id="confetti" class="confetti" aria-hidden="true"></canvas>
 {% endif %}
+
+<!-- Share Modal (fallback) -->
+<div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Share your score</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted">Copy and share this message with your friends:</p>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="shareText" readonly>
+                    <button class="btn btn-outline-primary" type="button" id="copyShare">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+ </div>
+
+<script>
+    // Animate progress bar and count-up percent
+    (function(){
+        const bar = document.querySelector('.progress-bar[data-target]');
+        const percentText = document.getElementById('percentText');
+        const scoreText = document.getElementById('scoreText');
+        if(!bar || !percentText || !scoreText) return;
+        const target = Number(bar.getAttribute('data-target'))||0;
+        const score = Number(scoreText.dataset.score)||0;
+        const total = Number(scoreText.dataset.total)||1;
+        // set initial width to 0 then animate to target
+        requestAnimationFrame(()=>{
+            bar.style.width = target + '%';
+        });
+        // Count-up display
+        let start = 0; const dur = 700; const begin = performance.now();
+        function step(ts){
+            const p = Math.min(1, (ts - begin)/dur);
+            const curr = Math.round(target * p);
+            percentText.textContent = curr + '%';
+            if(p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    })();
+
+        // Share button copies a shareable message; fallback to modal if clipboard API fails
+    (function(){
+        const btn = document.getElementById('btnShare');
+        const scoreText = document.getElementById('scoreText');
+        if(!btn || !scoreText) return;
+        btn.addEventListener('click', async ()=>{
+            const s = scoreText.dataset.score, t = scoreText.dataset.total;
+            const msg = `I scored ${s}/${t} on the Flask Quiz! Try to beat me: ${location.origin}`;
+                        try{
+                                await navigator.clipboard.writeText(msg);
+                                btn.textContent = 'Copied! ✅'; setTimeout(()=>btn.textContent='Share score', 1500);
+                        }catch(e){
+                                try{
+                                    const input = document.getElementById('shareText');
+                                    input.value = msg;
+                                    const modal = new bootstrap.Modal(document.getElementById('shareModal'));
+                                    modal.show();
+                                }catch(_){ alert(msg); }
+                        }
+        });
+                const copyBtn = document.getElementById('copyShare');
+                const input = document.getElementById('shareText');
+                if(copyBtn && input){
+                    copyBtn.addEventListener('click', async ()=>{
+                        input.select();
+                        try{ await navigator.clipboard.writeText(input.value); copyBtn.textContent='Copied!'; setTimeout(()=>copyBtn.textContent='Copy',1200);}catch(e){}
+                    });
+                }
+    })();
+
+    // Lightweight confetti for high scores
+    (function(){
+        const canvas = document.getElementById('confetti');
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const resize = ()=>{ canvas.width = innerWidth; canvas.height = innerHeight; };
+        resize(); addEventListener('resize', resize);
+        const pieces = []; const N=100; const grav=0.5, drag=0.075, vmax=5;
+        const colors = ['#4285F4','#EA4335','#FBBC05','#34A853'];
+        for(let i=0;i<N;i++) pieces.push({x:Math.random()*canvas.width, y:-20, vx:Math.random()*6-3, vy:-15-Math.random()*15, c:colors[i%colors.length], w:6+Math.random()*6, h:6+Math.random()*6, r:Math.random()*360, vr:Math.random()*10-5});
+        function tick(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            for(let i=pieces.length-1;i>=0;i--){ const p=pieces[i]; p.vx += Math.random()*0.2-0.1; p.vy += grav; p.vx *= (1-drag); p.vy *= (1-drag); if(p.vy>vmax) p.vy=vmax; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r*Math.PI/180); ctx.fillStyle=p.c; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore(); if(p.y>canvas.height) pieces.splice(i,1); }
+            if(pieces.length) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    })();
+</script>
 {% endblock %}

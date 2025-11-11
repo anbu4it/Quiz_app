@@ -11,7 +11,7 @@ services:
     branch: main
     
     buildCommand: pip install -r requirements.txt && bash build.sh
-    startCommand: gunicorn app:app
+  startCommand: gunicorn wsgi:app
     
     envVars:
       - key: SECRET_KEY

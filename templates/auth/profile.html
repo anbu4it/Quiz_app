@@ -3,58 +3,66 @@
 {% block title %}Profile | Quiz App{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h3 class="card-title mb-3">Your Profile</h3>
-
-                    <form method="post" enctype="multipart/form-data">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                        <div class="mb-3 d-flex align-items-center gap-3">
-                            {% if current_user.avatar %}
-                                <img src="{{ url_for('static', filename=current_user.avatar) }}{% if avatar_version %}?v={{ avatar_version }}{% endif %}" alt="avatar" class="rounded-circle" width="96" height="96">
-                            {% else %}
-                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:96px;height:96px;font-weight:700;font-size:28px;">
-                                    {{ current_user.username[0]|upper }}
-                                </div>
-                            {% endif %}
-
-                            <div>
-                                <label class="form-label">Change profile picture</label>
-                                <input type="file" name="avatar" class="form-control form-control-sm">
-                                <div class="form-text">Max 2MB. Supported: png, jpg, jpeg, gif</div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Full name</label>
-                            <input type="text" name="full_name" class="form-control" value="{{ current_user.full_name or '' }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Bio</label>
-                            <textarea name="bio" class="form-control" rows="4">{{ current_user.bio or '' }}</textarea>
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            <input class="form-check-input" type="checkbox" value="1" id="removeAvatar" name="remove_avatar">
-                            <label class="form-check-label" for="removeAvatar">Remove current profile picture</label>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-primary">Save changes</button>
-                            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
-                        </div>
-                    </form>
+<style>
+    .profile-wrap{ max-width:860px; margin:1.5rem auto; }
+    .avatar-shell{ position:relative; width:110px; height:110px; }
+    .avatar-shell img, .avatar-shell .avatar-fallback{ width:100%; height:100%; border-radius:50%; object-fit:cover; }
+    .avatar-edit-btn{ position:absolute; bottom:-6px; right:-6px; }
+    .gradient-bar{ height:4px; background:linear-gradient(90deg,var(--brand),#8b5cf6); border-radius:999px; margin:-1rem -1rem 1.5rem; }
+    .info-grid{ display:grid; gap:1.25rem; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); }
+    .floating-hint{ font-size:.75rem; letter-spacing:.05em; text-transform:uppercase; font-weight:600; color:var(--muted); }
+</style>
+<div class="profile-wrap">
+    <div class="card shadow-soft border-0 p-4 p-md-5">
+        <div class="gradient-bar"></div>
+        <h2 class="fw-bold mb-3">Your Profile</h2>
+        <p class="text-muted mb-4">Update your details, personalize your avatar, and let others spot you on the leaderboard.</p>
+        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div class="d-flex align-items-center gap-4 mb-4 flex-wrap">
+                <div class="avatar-shell shadow-sm">
+                    {% if current_user.avatar %}
+                        <img src="{{ url_for('static', filename=current_user.avatar) }}{% if avatar_version %}?v={{ avatar_version }}{% endif %}" alt="avatar">
+                    {% else %}
+                        <div class="avatar-fallback bg-secondary d-flex align-items-center justify-content-center text-white fw-bold" style="font-size:38px;">{{ current_user.username[0]|upper }}</div>
+                    {% endif %}
+                    <label class="btn btn-sm btn-primary avatar-edit-btn" title="Upload new">
+                        <span style="font-size:0.85rem;">Change</span>
+                        <input type="file" name="avatar" hidden accept="image/png,image/jpeg,image/jpg,image/gif">
+                    </label>
+                </div>
+                <div class="flex-grow-1 small text-muted">
+                    <div class="mb-1 floating-hint">Avatar guidelines</div>
+                    <ul class="mb-0 ps-3">
+                        <li>Max 2MB size</li>
+                        <li>Formats: png, jpg, jpeg, gif</li>
+                        <li>Square images look best</li>
+                    </ul>
                 </div>
             </div>
-        </div>
+            <div class="info-grid mb-3">
+                <div>
+                    <label class="form-label">Display name</label>
+                    <input type="text" name="full_name" class="form-control" value="{{ current_user.full_name or '' }}" placeholder="Your full name">
+                </div>
+                <div>
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-control" value="{{ current_user.username }}" disabled>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Bio</label>
+                <textarea name="bio" class="form-control" rows="4" placeholder="Tell others what you like to learn...">{{ current_user.bio or '' }}</textarea>
+            </div>
+            <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" value="1" id="removeAvatar" name="remove_avatar">
+                <label class="form-check-label" for="removeAvatar">Remove current profile picture</label>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-primary">Save changes</button>
+                <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
     </div>
 </div>
-
-<style>
-.card img { object-fit: cover; }
-</style>
 {% endblock %}

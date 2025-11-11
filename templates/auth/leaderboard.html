@@ -3,7 +3,7 @@
 {% block title %}Leaderboard | Quiz App{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-4 leaderboard-page">
     <h2 class="text-center mb-4">🏆 Quiz Leaderboards</h2>
     
     <!-- Navigation tabs -->
@@ -48,7 +48,7 @@
                                     <td class="fw-bold">{{ loop.index }}</td>
                                     <td class="username-cell">
                                         {% if performer.avatar %}
-                                            <img src="{{ url_for('static', filename=performer.avatar) }}?v={{ performer.username|urlencode }}" alt="{{ performer.username }}'s avatar" class="avatar-img" />
+                                            <img src="{{ url_for('static', filename=performer.avatar) }}?v={{ performer.username|urlencode }}" alt="{{ performer.username }}'s avatar" class="avatar-img" loading="lazy" width="44" height="44" />
                                         {% else %}
                                             <span class="avatar">{{ performer.username[0]|upper }}</span>
                                         {% endif %}
@@ -95,7 +95,7 @@
                                         <td class="fw-bold">{{ loop.index }}</td>
                                         <td class="username-cell">
                                             {% if score.avatar %}
-                                                <img src="{{ url_for('static', filename=score.avatar) }}?v={{ score.username|urlencode }}" alt="{{ score.username }}'s avatar" class="avatar-img" />
+                                                <img src="{{ url_for('static', filename=score.avatar) }}?v={{ score.username|urlencode }}" alt="{{ score.username }}'s avatar" class="avatar-img" loading="lazy" width="44" height="44" />
                                             {% else %}
                                                 <span class="avatar">{{ score.username[0]|upper }}</span>
                                             {% endif %}
@@ -134,70 +134,7 @@
         {% endfor %}
     </div>
 </div>
-
-<style>
-.nav-tabs {
-    border-bottom: 2px solid #dee2e6;
-}
-
-.nav-tabs .nav-link {
-    margin-bottom: -2px;
-    border: none;
-    color: #6c757d;
-    font-weight: 500;
-    padding: 12px 20px;
-    transition: all 0.3s ease;
-}
-
-.nav-tabs .nav-link:hover {
-    border: none;
-    color: #0d6efd;
-}
-
-.nav-tabs .nav-link.active {
-    border: none;
-    border-bottom: 2px solid #0d6efd;
-    color: #0d6efd;
-}
-
-.card {
-    border: none;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    margin-top: 1rem;
-}
-
-.table-primary {
-    background: linear-gradient(45deg, #007bff, #6610f2);
-    color: white;
-}
-
-.table-hover tbody tr:hover {
-    background-color: rgba(0,123,255,0.1);
-}
-
-.table th {
-    font-weight: 600;
-}
-
-.table td, .table th {
-    padding: 12px;
-    vertical-align: middle;
-}
-/* Keep nav tabs on a single line and allow horizontal scrolling when many categories exist */
-.nav-tabs {
-    display: flex;
-    flex-wrap: nowrap; /* prevent tabs from wrapping to next line */
-    overflow-x: auto; /* enable horizontal scroll when needed */
-    overflow-y: hidden; /* hide any vertical scrollbar */
-    -webkit-overflow-scrolling: touch;
-}
-
-.nav-tabs .nav-item {
-    flex: 0 0 auto; /* keep each tab sized to its content */
-}
-
-.nav-tabs .nav-link {
-    white-space: nowrap; /* keep text on one line */
+{% endblock %}
 }
 
 /* Small visual tweaks for the horizontal scrollbar */
@@ -216,7 +153,11 @@
 }
 
 /* Leaderboard visual upgrades */
-.username-cell { display: flex; align-items: center; gap: 12px; }
+.username-cell { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+}
 .avatar {
     display: inline-flex;
     align-items: center;
@@ -230,6 +171,9 @@
     box-shadow: 0 2px 6px rgba(13,110,253,0.12);
     flex: 0 0 44px;
 }
+[data-theme="dark"] .avatar {
+    background: linear-gradient(135deg,#a78bfa,#60a5fa);
+}
 .avatar-img {
     width: 44px;
     height: 44px;
@@ -238,8 +182,17 @@
     box-shadow: 0 2px 6px rgba(13,110,253,0.12);
     flex: 0 0 44px;
 }
-.username-name { font-weight: 600; }
-.username-meta { font-size: 0.8rem; }
+[data-theme="dark"] .avatar-img {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+.username-name { 
+    font-weight: 600; 
+    color: var(--fg);
+}
+.username-meta { 
+    font-size: 0.8rem; 
+    color: var(--muted);
+}
 .score-badge {
     display: inline-block;
     padding: 6px 10px;
@@ -248,17 +201,50 @@
     color: #fff;
     font-weight: 700;
 }
+[data-theme="dark"] .score-badge {
+    background: linear-gradient(90deg,#10b981,#84cc16);
+}
 .top-1 { background: linear-gradient(90deg, rgba(255,215,0,0.12), rgba(255,255,255,0)); }
 .top-2 { background: linear-gradient(90deg, rgba(192,192,192,0.08), rgba(255,255,255,0)); }
 .top-3 { background: linear-gradient(90deg, rgba(205,127,50,0.06), rgba(255,255,255,0)); }
-.table tbody tr { transition: transform 120ms ease, box-shadow 120ms ease; }
-.table tbody tr:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+[data-theme="dark"] .top-1 { background: linear-gradient(90deg, rgba(255,215,0,0.2), rgba(0,0,0,0)); }
+[data-theme="dark"] .top-2 { background: linear-gradient(90deg, rgba(192,192,192,0.15), rgba(0,0,0,0)); }
+[data-theme="dark"] .top-3 { background: linear-gradient(90deg, rgba(205,127,50,0.12), rgba(0,0,0,0)); }
+.table tbody tr { 
+    transition: transform 120ms ease, box-shadow 120ms ease; 
+}
+.table tbody tr:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06); 
+}
+[data-theme="dark"] .table tbody tr:hover {
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
 
 /* Make table rows rounded on container */
-.table { border-collapse: separate; border-spacing: 0; }
+.table { 
+    border-collapse: separate; 
+    border-spacing: 0; 
+    color: var(--fg);
+}
 .table thead th:first-child { border-top-left-radius: 8px; }
 .table thead th:last-child { border-top-right-radius: 8px; }
 .table tbody tr:first-child td:first-child { border-top-left-radius: 8px; }
 .table tbody tr:first-child td:last-child { border-top-right-radius: 8px; }
-</style>
-{% endblock %}
+
+/* Empty state */
+.text-center .text-muted {
+    color: var(--muted) !important;
+}
+
+/* Badge overrides for dark mode */
+[data-theme="dark"] .badge.bg-secondary {
+    background-color: var(--input-bg) !important;
+    color: var(--fg) !important;
+}
+
+/* Scrollbar styling for dark mode */
+[data-theme="dark"] .nav-tabs::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+}
+<!-- Styles moved to global stylesheet (style.css) -->

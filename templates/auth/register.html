@@ -1,28 +1,65 @@
 {% extends "base.html" %}
 
+{% block title %}Register | Quiz App{% endblock %}
+
 {% block content %}
-<div class="auth-container">
-    <h2>Register</h2>
-    <form method="POST" action="{{ url_for('auth.register') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <div class="form-group">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required value="{{ prefill_username or request.form.get('username','') }}">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-6">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-3">Create your account</h3>
+                    <p class="text-muted mb-4">Fill in the form below to get started.</p>
+                    <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <div class="form-field">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required autofocus value="{{ prefill_username or request.form.get('username','') }}" placeholder="Your username">
+                        </div>
+                        <div class="form-field">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required value="{{ prefill_email or request.form.get('email','') }}" placeholder="you@example.com">
+                        </div>
+                        <div class="form-field">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required minlength="8" aria-describedby="pw-hint" placeholder="At least 8 characters">
+                            <small id="pw-hint" class="field-hint">Use at least 8 characters, including a letter and a number.</small>
+                        </div>
+                        <div class="form-field mb-3">
+                            <label for="confirm_password" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required minlength="8" placeholder="Re-enter your password">
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Register</button>
+                        </div>
+                    </form>
+                    <p class="small text-muted mt-3">Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required value="{{ prefill_email or request.form.get('email','') }}">
-        </div>
-        <div class="form-group">
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required minlength="8">
-        </div>
-        <div class="form-group">
-            <label for="confirm_password">Confirm Password:</label>
-            <input type="password" id="confirm_password" name="confirm_password" required minlength="8">
-        </div>
-        <button type="submit" class="btn">Register</button>
-    </form>
-    <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+    </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const pw = document.getElementById('password');
+  const hint = document.getElementById('pw-hint');
+  if(!pw || !hint) return;
+  pw.addEventListener('input', () => {
+    const v = pw.value;
+    const long = v.length >= 8;
+    const hasLetter = /[A-Za-z]/.test(v);
+    const hasNum = /\d/.test(v);
+    if(long && hasLetter && hasNum){
+      hint.textContent = 'Looking good.';
+      hint.style.color = '#16a34a';
+      pw.classList.add('is-valid');
+      pw.classList.remove('is-invalid');
+    } else {
+      hint.textContent = 'Use at least 8 characters, including a letter and a number.';
+      hint.style.color = '';
+      pw.classList.remove('is-valid');
+    }
+  });
+});
+</script>
 {% endblock %}

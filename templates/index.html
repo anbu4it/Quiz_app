@@ -3,55 +3,85 @@
 {% block title %}Flask Quiz | Home{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="text-center mb-4">
-        <h1 class="display-4 fw-bold">🎯 Quiz App</h1>
-        {% if current_user.is_authenticated %}
-            <p class="lead">Welcome back, {{ current_user.username }}! Ready for another challenge?</p>
-        {% else %}
-            <p class="lead">Enter your name and select topics to start your challenge!</p>
-        {% endif %}
-    </div>
-
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow-lg">
-                <div class="card-body p-4">
-                    <form action="{{ url_for('quiz.quiz') }}" method="POST">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                        {% if not current_user.is_authenticated %}
-                        <div class="mb-4">
-                            <label for="username" class="form-label">Your Name</label>
-                            <input type="text" class="form-control" id="username" name="username" required>
-                        </div>
-                        {% endif %}
-
-                        <div class="mb-4">
-                            <label class="form-label">Select Topics</label>
-                            <div class="row row-cols-1 row-cols-md-2 g-3">
-                                {% for topic in topics %}
-                                <div class="col">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="topics" 
-                                               value="{{ topic }}" id="{{ topic }}">
-                                        <label class="form-check-label" for="{{ topic }}">
-                                            {{ topic }}
-                                        </label>
+<style>
+    .topic-label{ transition:.2s ease; }
+    .topic-label:hover{ transform:translateY(-2px); box-shadow:0 4px 14px rgba(2,6,23,0.08); }
+    .features-list li{ padding:.35rem 0; }
+    .floating-orb{ position:absolute; width:140px; height:140px; border-radius:50%; background:radial-gradient(circle at 30% 30%, rgba(13,110,253,.55), rgba(139,92,246,.45)); top:-40px; right:-40px; filter:blur(40px); opacity:.35; pointer-events:none; }
+    .hero-heading{ line-height:1.1; letter-spacing:-.02em; }
+</style>
+<section class="py-5 position-relative">
+    <div class="floating-orb"></div>
+    <div class="container position-relative">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+                <h1 class="display-5 fw-bold mb-3 hero-heading">Test your knowledge, one question at a time</h1>
+                {% if current_user.is_authenticated %}
+                    <p class="lead text-muted">Welcome back, {{ current_user.username }}. Pick topics and dive in!</p>
+                {% else %}
+                    <p class="lead text-muted">Enter your name, pick a few topics, and start your quiz journey.</p>
+                {% endif %}
+                <ul class="list-unstyled small text-muted mb-4 features-list">
+                    <li>Fresh questions from multiple categories</li>
+                    <li>Progress saved to your dashboard when logged in</li>
+                    <li>Responsive dark/light theme for comfortable play</li>
+                </ul>
+            </div>
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-soft">
+                    <div class="card-body p-4">
+                        <form action="{{ url_for('quiz.quiz') }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            {% if not current_user.is_authenticated %}
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Your Name</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                            {% endif %}
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <label class="form-label m-0">Select Topics</label>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button class="btn btn-outline-secondary" type="button" id="btn-select-all">All</button>
+                                        <button class="btn btn-outline-secondary" type="button" id="btn-clear">Clear</button>
                                     </div>
                                 </div>
-                                {% endfor %}
+                                <div class="row row-cols-1 row-cols-md-2 g-3">
+                                    {% for topic in topics %}
+                                    <div class="col">
+                                        <input class="btn-check" type="checkbox" autocomplete="off" name="topics" id="t{{ loop.index }}" value="{{ topic }}">
+                                        <label class="btn w-100 text-start border topic-label" for="t{{ loop.index }}">{{ topic }}</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                Start Quiz 🚀
-                            </button>
-                        </div>
-                    </form>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">Start Quiz 🚀</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
+<script>
+    (function(){
+        const selectAll = document.getElementById('btn-select-all');
+        const clearBtn = document.getElementById('btn-clear');
+        const checks = () => Array.from(document.querySelectorAll('input[name="topics"]'));
+        selectAll?.addEventListener('click', ()=>{ checks().forEach(cb=>cb.checked=true); sync(); });
+        clearBtn?.addEventListener('click', ()=>{ checks().forEach(cb=>cb.checked=false); sync(); });
+        function sync(){
+            checks().forEach(cb=>{
+                const label = document.querySelector(`label[for="${cb.id}"]`);
+                if(!label) return;
+                if(cb.checked){ label.classList.add('btn-primary','text-white'); label.classList.remove('border'); }
+                else { label.classList.remove('btn-primary','text-white'); label.classList.add('border'); }
+            });
+        }
+        checks().forEach(cb=> cb.addEventListener('change', sync));
+        sync();
+    })();
+</script>
 {% endblock %}

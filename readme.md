@@ -1,5 +1,13 @@
 # Flask Quiz App
 
+Modern, theme-aware quiz application built with Flask, Bootstrap 5, and SQLAlchemy.
+
+Highlights:
+- Light/dark themes with smooth gradients and soft shadows
+- Polished home, quiz, and result flows with animations
+- Shareable results, confetti for high scores, and subtle micro-interactions
+- Secure auth, CSRF protection, and production-ready deployment on Render
+
 ## Run locally
 
 Windows PowerShell:
@@ -55,7 +63,29 @@ Run tests (optional):
 
 1. .\venv\Scripts\Activate.ps1
 2. python -m pip install -r requirements.txt
-3. python -m pytest -q
+3. $env:PYTEST_CURRENT_TEST="1"; python -m pytest -q
+
+Note: Setting PYTEST_CURRENT_TEST before collection prevents accidental server startup during imports.
+
+## Design overview
+
+Pages refreshed for a cohesive look-and-feel:
+- Base layout: theme toggle, refined navbar, sticky flash area, and footer
+- Home: orb accent, topic chips with All/Clear controls, better micro-interactions
+- Quiz: sleeker options UI and animated progress
+- Result: modern score card with animated percentage, share button, and confetti on high scores
+- Errors: friendly 404/500 pages with quick actions
+- Profile: clearer avatar upload with guidelines and improved layout
+
+Styling uses CSS variables defined in `static/style.css` for easy theme customization.
+
+Screenshots (optional placeholders):
+```
+static/images/screenshots/
+	home.png
+	quiz.png
+	result.png
+```
 
 ## Configuration (Trivia Fetch)
 
