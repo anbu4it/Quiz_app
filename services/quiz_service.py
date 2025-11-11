@@ -84,13 +84,19 @@ class TriviaService:
         if not topics:
             return []
 
-        # distribute at least 1 question per topic
-        per_topic = max(1, total_needed // len(topics))
-
-        for t in topics:
+        # Calculate questions per topic with proper distribution
+        # Ensure we fetch enough to reach total_needed even with rounding
+        base_per_topic = total_needed // len(topics)
+        remainder = total_needed % len(topics)
+        
+        # Fetch questions from each topic
+        for idx, t in enumerate(topics):
+            # First 'remainder' topics get an extra question to reach total_needed
+            questions_to_fetch = base_per_topic + (1 if idx < remainder else 0)
+            
             cat_id = CATEGORY_MAP.get(t)
             try:
-                raw = self._fetch(amount=per_topic, category_id=cat_id)
+                raw = self._fetch(amount=questions_to_fetch, category_id=cat_id)
             except Exception:
                 raw = []
             for r in raw:
