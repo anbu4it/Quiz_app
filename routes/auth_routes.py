@@ -324,6 +324,7 @@ def profile():
 @auth_bp.route('/leaderboard')
 @login_required
 def leaderboard():
+    from services.cloudinary_service import is_cloudinary_url
     try:
         # First, get all unique quiz categories
         categories = db.session.query(Score.quiz_name).distinct().all()
@@ -357,9 +358,14 @@ def leaderboard():
             for score in topic_scores:
                 avatar_path = getattr(score, 'avatar', None)
                 if avatar_path:
-                    full = os.path.join(current_app.static_folder, avatar_path)
-                    if not os.path.exists(full):
-                        avatar_path = 'images/default-avatar.svg'
+                    # If it's a Cloudinary URL, use it directly
+                    if is_cloudinary_url(avatar_path):
+                        pass  # Keep the Cloudinary URL as-is
+                    else:
+                        # For local files, check if they exist
+                        full = os.path.join(current_app.static_folder, avatar_path)
+                        if not os.path.exists(full):
+                            avatar_path = 'images/default-avatar.svg'
                 else:
                     avatar_path = 'images/default-avatar.svg'
 
@@ -387,9 +393,14 @@ def leaderboard():
         for p in top_performers:
             avatar_path = getattr(p, 'avatar', None)
             if avatar_path:
-                full = os.path.join(current_app.static_folder, avatar_path)
-                if not os.path.exists(full):
-                    avatar_path = 'images/default-avatar.svg'
+                # If it's a Cloudinary URL, use it directly
+                if is_cloudinary_url(avatar_path):
+                    pass  # Keep the Cloudinary URL as-is
+                else:
+                    # For local files, check if they exist
+                    full = os.path.join(current_app.static_folder, avatar_path)
+                    if not os.path.exists(full):
+                        avatar_path = 'images/default-avatar.svg'
             else:
                 avatar_path = 'images/default-avatar.svg'
             normalized_top.append({
