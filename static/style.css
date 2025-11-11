@@ -585,6 +585,470 @@ body{
   .result-card{ box-shadow:none !important; border:1px solid #ccc !important; }
 }
 
+/* ====================================
+   MOBILE RESPONSIVE & OPTIMIZATION
+   ==================================== */
+
+/* Base responsive typography */
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 576px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* Mobile-first container adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Touch-friendly buttons and links */
+@media (hover: none) and (pointer: coarse) {
+  .btn,
+  .nav-link,
+  .option label,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .option label {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+}
+
+/* Navbar mobile optimization */
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    background: var(--card);
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .navbar-nav {
+    gap: 0.5rem;
+  }
+  
+  .nav-item {
+    width: 100%;
+  }
+  
+  .nav-link {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+  }
+  
+  .nav-item .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .theme-toggle {
+    width: 100%;
+  }
+}
+
+/* Hero section mobile responsive */
+@media (max-width: 991.98px) {
+  .hero-heading {
+    font-size: 2rem;
+  }
+  
+  .display-5 {
+    font-size: 2.25rem;
+  }
+  
+  .lead {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-heading {
+    font-size: 1.75rem;
+  }
+  
+  .display-5 {
+    font-size: 1.75rem;
+  }
+  
+  .lead {
+    font-size: 1rem;
+  }
+}
+
+/* Card spacing mobile */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  .card-body {
+    padding: 1.25rem;
+  }
+  
+  .result-card,
+  .error-card {
+    padding: 2rem 1.5rem;
+    margin: 2rem auto;
+  }
+}
+
+/* Quiz page mobile optimization */
+@media (max-width: 768px) {
+  .question-box {
+    min-height: 120px;
+    padding: 0.5rem 0;
+  }
+  
+  .question-box h4 {
+    font-size: 1.25rem;
+  }
+  
+  .question-box p {
+    font-size: 1.1rem;
+  }
+  
+  .options-container label {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+  }
+}
+
+/* Form elements mobile responsive */
+@media (max-width: 576px) {
+  .form-control,
+  .form-select,
+  input,
+  textarea {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+  
+  .btn-lg {
+    padding: 0.875rem 1.5rem;
+    font-size: 1.125rem;
+  }
+}
+
+/* Dashboard mobile layout */
+@media (max-width: 768px) {
+  .stats-summary {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .stat-card {
+    padding: 1.25rem;
+  }
+  
+  .dashboard-container {
+    padding: 1rem;
+  }
+}
+
+/* Table responsive wrapper */
+@media (max-width: 768px) {
+  .table-responsive {
+    border-radius: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .score-history table {
+    min-width: 500px;
+  }
+  
+  .score-history th,
+  .score-history td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Leaderboard mobile responsive */
+@media (max-width: 768px) {
+  .leaderboard-page .nav-tabs {
+    padding-bottom: 0.5rem;
+  }
+  
+  .leaderboard-page .nav-tabs .nav-link {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .leaderboard-page .username-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .leaderboard-page .avatar,
+  .leaderboard-page .avatar-img {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .leaderboard-page .table {
+    font-size: 0.875rem;
+  }
+  
+  .leaderboard-page .table th,
+  .leaderboard-page .table td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  /* Hide less important columns on mobile */
+  .leaderboard-page .table .d-none-mobile {
+    display: none !important;
+  }
+}
+
+/* Result page mobile */
+@media (max-width: 576px) {
+  .result-wrap {
+    margin: 1rem auto;
+  }
+  
+  .score-big {
+    font-size: 2.5rem;
+  }
+  
+  .actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .actions .btn {
+    width: 100%;
+    padding: 0.875rem;
+  }
+}
+
+/* Error pages mobile */
+@media (max-width: 576px) {
+  .error-wrap {
+    margin: 2rem auto;
+  }
+  
+  .error-card {
+    padding: 2rem 1.25rem;
+  }
+  
+  .error-code {
+    font-size: 3.5rem;
+  }
+}
+
+/* Footer mobile */
+@media (max-width: 768px) {
+  .app-footer {
+    text-align: center;
+    padding: 1.5rem 0;
+  }
+  
+  .app-footer .container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .app-footer .d-flex {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* Floating elements mobile */
+@media (max-width: 768px) {
+  .hero-blur {
+    opacity: 0.5;
+  }
+  
+  .floating-orb {
+    width: 100px;
+    height: 100px;
+    opacity: 0.25;
+  }
+}
+
+/* Sticky elements mobile optimization */
+@media (max-width: 768px) {
+  .flash-area {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+  
+  .alert {
+    font-size: 0.875rem;
+    padding: 0.75rem;
+  }
+}
+
+/* Button groups mobile */
+@media (max-width: 576px) {
+  .btn-group {
+    display: flex;
+    flex-direction: row;
+    width: auto;
+  }
+  
+  .btn-group > .btn {
+    flex: 1;
+    min-width: auto;
+  }
+}
+
+/* Modal mobile optimization */
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+  
+  .modal-content {
+    border-radius: 16px;
+  }
+}
+
+/* Accessibility: larger tap targets on touch devices */
+@media (hover: none) {
+  .nav-tabs .nav-link {
+    padding: 1rem 1.5rem;
+  }
+  
+  .checkbox + label,
+  .radio + label,
+  .btn-check + label {
+    padding: 1rem;
+  }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+  .navbar {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  
+  .hero-heading {
+    font-size: 1.5rem;
+  }
+  
+  .question-box {
+    min-height: 80px;
+  }
+}
+
+/* Image optimization */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.avatar,
+.avatar-img {
+  flex-shrink: 0;
+}
+
+/* Performance: GPU acceleration for animations */
+.card,
+.btn,
+.option label,
+.progress-bar,
+.nav-link {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Reduce animations on low-end devices */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .btn,
+  .option label,
+  .nav-link {
+    will-change: auto;
+    transform: none;
+  }
+}
+
+/* Touch optimization: remove hover effects on touch devices */
+@media (hover: none) {
+  .card:hover,
+  .btn:hover,
+  .nav-link:hover {
+    transform: none;
+  }
+  
+  .table tbody tr:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* Safe area insets for notched devices (iOS) */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+  
+  .navbar,
+  .app-footer {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+/* Smooth scrolling for mobile */
+@media (max-width: 768px) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Loading states mobile optimization */
+@media (max-width: 576px) {
+  .skeleton {
+    min-height: 20px;
+  }
+}
+
+/* Form validation mobile friendly */
+@media (max-width: 576px) {
+  .invalid-feedback,
+  .valid-feedback {
+    font-size: 0.875rem;
+  }
+}
+
+/* Grid responsive helpers */
+@media (max-width: 576px) {
+  .row-cols-1 > * {
+    width: 100%;
+  }
+}
+
+/* Prevent layout shift */
+.card,
+.btn,
+.form-control {
+  contain: layout style;
+}
+
 /* Leaderboard page styles (moved from template) */
 .leaderboard-page .nav-tabs { border-bottom: 2px solid var(--border); display:flex; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:thin; }
 .leaderboard-page .nav-tabs .nav-item { flex:0 0 auto; }
