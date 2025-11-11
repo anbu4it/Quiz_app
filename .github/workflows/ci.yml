@@ -47,6 +47,9 @@ jobs:
         echo "FLASK_APP=app" >> $GITHUB_ENV
         echo "SESSION_COOKIE_SECURE=0" >> $GITHUB_ENV
         echo "REMEMBER_COOKIE_SECURE=0" >> $GITHUB_ENV
+        echo "CLOUDINARY_CLOUD_NAME=test-cloud" >> $GITHUB_ENV
+        echo "CLOUDINARY_API_KEY=test-api-key" >> $GITHUB_ENV
+        echo "CLOUDINARY_API_SECRET=test-api-secret" >> $GITHUB_ENV
 
     - name: Run database migrations
       run: |
