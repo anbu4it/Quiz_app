@@ -45,6 +45,17 @@ services:
       
       - key: REQUEST_TIMEOUT_SECONDS
         value: "10"
+      
+      # Cloudinary configuration (optional - for persistent avatar storage)
+      # Sign up at https://cloudinary.com and get your credentials
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false  # Set manually in Render dashboard
+      
+      - key: CLOUDINARY_API_KEY
+        sync: false  # Set manually in Render dashboard
+      
+      - key: CLOUDINARY_API_SECRET
+        sync: false  # Set manually in Render dashboard
 
 databases:
   - name: quiz-app-database

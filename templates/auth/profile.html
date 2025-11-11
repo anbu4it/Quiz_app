@@ -22,7 +22,7 @@
             <div class="d-flex align-items-center gap-4 mb-4 flex-wrap">
                 <div class="avatar-shell shadow-sm">
                     {% if current_user.avatar %}
-                        <img src="{{ url_for('static', filename=current_user.avatar) }}{% if avatar_version %}?v={{ avatar_version }}{% endif %}" alt="avatar">
+                        <img src="{{ current_user.avatar|avatar_url(avatar_version) }}" alt="avatar">
                     {% else %}
                         <div class="avatar-fallback bg-secondary d-flex align-items-center justify-content-center text-white fw-bold" style="font-size:38px;">{{ current_user.username[0]|upper }}</div>
                     {% endif %}

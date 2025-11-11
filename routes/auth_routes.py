@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import desc, func
 from models import db, User, Score
 from werkzeug.utils import secure_filename
+from services.cloudinary_service import upload_avatar, delete_avatar, is_cloudinary_url
 import os
 from datetime import datetime
 import re
@@ -263,7 +264,7 @@ def profile():
         # Handle avatar upload / removal
         remove_avatar = request.form.get('remove_avatar')
         if remove_avatar:
-            _remove_avatar_file(current_user.avatar)
+            delete_avatar(current_user.avatar)
             current_user.avatar = None
 
         file = request.files.get('avatar')
@@ -287,18 +288,18 @@ def profile():
                 flash('Avatar too large (max 2MB).', 'warning')
                 return redirect(url_for('auth.profile'))
 
-            # remove old avatar file if exists
-            _remove_avatar_file(current_user.avatar)
+            # Delete old avatar before uploading new one
+            if current_user.avatar:
+                delete_avatar(current_user.avatar)
 
-            _, ext = os.path.splitext(filename)
-            # build unique filename: userID_timestamp.ext
-            safe_name = f"user_{current_user.id}_{int(datetime.utcnow().timestamp())}{ext}"
-            upload_dir = os.path.join(current_app.static_folder, 'uploads')
-            os.makedirs(upload_dir, exist_ok=True)
-            save_path = os.path.join(upload_dir, safe_name)
-            file.save(save_path)
-            # store relative path (uploads/...) to serve via url_for('static', ...)
-            current_user.avatar = f"uploads/{safe_name}"
+            # Upload to Cloudinary (production) or local storage (development)
+            try:
+                avatar_url = upload_avatar(file, current_user.id)
+                current_user.avatar = avatar_url
+            except Exception as e:
+                current_app.logger.error(f"Avatar upload failed: {str(e)}")
+                flash('Failed to upload avatar. Please try again.', 'danger')
+                return redirect(url_for('auth.profile'))
 
         try:
             db.session.commit()

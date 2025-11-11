@@ -163,6 +163,22 @@ def create_app(test_config: dict | None = None):
                 return url_for('static', filename=path)
         return dict(static_url=static_url)
 
+    # Custom Jinja filter for avatar URLs (handles both Cloudinary and local)
+    @app.template_filter('avatar_url')
+    def avatar_url_filter(avatar_path, cache_buster=None):
+        """Convert avatar path to full URL, handling both Cloudinary URLs and local paths."""
+        if not avatar_path:
+            return url_for('static', filename='images/default-avatar.svg')
+        
+        # If it's already a full URL (Cloudinary), return as-is
+        if avatar_path.startswith('http://') or avatar_path.startswith('https://'):
+            return avatar_path
+        
+        # Local file - use url_for with cache buster
+        if cache_buster:
+            return url_for('static', filename=avatar_path, v=cache_buster)
+        return url_for('static', filename=avatar_path)
+
     # Error handlers
     @app.errorhandler(404)
     def not_found(e):
@@ -219,7 +235,7 @@ def create_app(test_config: dict | None = None):
         resp.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
         resp.headers.setdefault('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
         # Simple CSP (adjust as needed)
-        resp.headers.setdefault('Content-Security-Policy', "default-src 'self'; style-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/bootstrap@5.3.0 'unsafe-inline'; script-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/bootstrap@5.3.0 'unsafe-inline'; img-src 'self' data:;")
+        resp.headers.setdefault('Content-Security-Policy', "default-src 'self'; style-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/bootstrap@5.3.0 'unsafe-inline'; script-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/bootstrap@5.3.0 'unsafe-inline'; img-src 'self' data: https://res.cloudinary.com;")
         return resp
 
     # Respect X-Forwarded-Proto for HTTPS redirects behind Render proxy
