@@ -1052,7 +1052,7 @@ img {
 /* Leaderboard page styles (moved from template) */
 .leaderboard-page .nav-tabs { border-bottom: 2px solid var(--border); display:flex; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:thin; }
 .leaderboard-page .nav-tabs .nav-item { flex:0 0 auto; }
-.leaderboard-page .nav-tabs .nav-link { white-space:nowrap; margin-bottom:-2px; border:none; color:var(--fg); font-weight:500; padding:12px 20px; transition:all .25s ease; background:transparent; }
+.leaderboard-page .nav-tabs .nav-link { white-space:nowrap; margin-bottom:-2px; border:none; color:var(--fg); font-weight:500; padding:10px 14px; transition:all .25s ease; background:transparent; }
 .leaderboard-page .nav-tabs .nav-link:hover { border:none; color:var(--brand); background: rgba(96,165,250,0.08); border-radius: 8px 8px 0 0; }
 .leaderboard-page .nav-tabs .nav-link.active { border:none; border-bottom:2px solid var(--brand); color:var(--brand); background:var(--card); border-radius:8px 8px 0 0; box-shadow: 0 -2px 8px rgba(0,0,0,0.08); }
 [data-theme="dark"] .leaderboard-page .nav-tabs { border-bottom-color: var(--border); }
@@ -1062,6 +1062,33 @@ img {
 .leaderboard-page .nav-tabs::-webkit-scrollbar { height:8px; }
 .leaderboard-page .nav-tabs::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius:4px; }
 [data-theme="dark"] .leaderboard-page .nav-tabs::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
+
+/* Tighter, more accessible category tabs on phones */
+@media (max-width: 576px) {
+  .leaderboard-page .nav-tabs {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    row-gap: 6px;
+    column-gap: 6px;
+    border-bottom-width: 1px;
+  }
+  .leaderboard-page .nav-tabs .nav-item {
+    flex: 1 1 calc(50% - 6px);
+  }
+  .leaderboard-page .nav-tabs .nav-link {
+    white-space: normal;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.2;
+    text-align: center;
+    border-radius: 8px;
+    min-height: 44px; /* touch target */
+  }
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+  .leaderboard-page .nav-tabs .nav-link { padding: 0.6rem 0.9rem; }
+}
 
 .leaderboard-page .card { border:none; box-shadow: var(--shadow-sm); margin-top:1rem; background: var(--card); }
 [data-theme="dark"] .leaderboard-page .card { box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.4); }
