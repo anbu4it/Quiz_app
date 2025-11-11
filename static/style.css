@@ -269,6 +269,14 @@ body{
 [data-theme="dark"] .bg-success{ background-color: #4ade80 !important; }
 [data-theme="dark"] .bg-warning{ background-color: #fbbf24 !important; }
 [data-theme="dark"] .bg-danger{ background-color: #ef4444 !important; }
+/* Fix result page buttons visibility in dark mode */
+[data-theme="dark"] .actions .btn-primary{ background: linear-gradient(90deg, var(--brand), #8b5cf6); color: #ffffff !important; }
+[data-theme="dark"] .actions .btn-outline-primary{ color: var(--brand) !important; border-color: var(--brand); }
+[data-theme="dark"] .actions .btn-outline-primary:hover{ background-color: var(--brand); color: #ffffff !important; }
+[data-theme="dark"] .actions .btn-outline-success{ color: #4ade80 !important; border-color: #4ade80; }
+[data-theme="dark"] .actions .btn-outline-success:hover{ background-color: #4ade80; color: #000000 !important; }
+[data-theme="dark"] .actions .btn-outline-secondary{ color: var(--fg) !important; border-color: var(--border); }
+[data-theme="dark"] .actions .btn-outline-secondary:hover{ background-color: rgba(148, 163, 184, 0.2); color: var(--fg) !important; }
 
 /* Flash */
 .alert{ border-radius: 10px; }
@@ -336,7 +344,7 @@ body{
   border-bottom:1px solid var(--border); 
   color: var(--fg);
 }
-.score-history th{ background: rgba(148,163,184,0.15); font-weight:600; }
+.score-history th{ background: rgba(148,163,184,0.15); font-weight:600; color: var(--fg); }
 
 [data-theme="dark"] .stat-card {
   background: var(--card);
@@ -346,7 +354,63 @@ body{
 
 [data-theme="dark"] .score-history th {
   background: rgba(51, 65, 85, 0.5);
+  color: var(--fg) !important;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .score-history td {
   color: var(--fg);
+}
+
+/* Dashboard table fixes for dark mode */
+[data-theme="dark"] .table-light {
+  --bs-table-bg: rgba(51, 65, 85, 0.3);
+  --bs-table-color: var(--fg);
+}
+
+[data-theme="dark"] .table-light th {
+  color: var(--fg) !important;
+  background-color: rgba(51, 65, 85, 0.5) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .table td,
+[data-theme="dark"] .table th {
+  color: var(--fg) !important;
+}
+
+[data-theme="dark"] .card-header h4 {
+  color: var(--fg) !important;
+}
+
+[data-theme="dark"] .text-muted {
+  color: var(--muted) !important;
+  opacity: 0.9;
+}
+
+/* Dashboard-specific styles */
+.card {
+  transition: all 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-5px);
+}
+.quiz-icon .badge {
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+.table th {
+  font-weight: 600;
+}
+.table td {
+  vertical-align: middle;
+}
+.card-header h4 {
+  font-weight: 600;
 }
 
 /* Text utilities for dark mode */

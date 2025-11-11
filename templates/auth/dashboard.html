@@ -96,12 +96,26 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="quiz-icon me-3">
-                                                {% if 'Python' in score.quiz_name %}
-                                                    <span class="badge bg-primary">🐍</span>
-                                                {% elif 'JavaScript' in score.quiz_name %}
-                                                    <span class="badge bg-warning">JS</span>
-                                                {% elif 'SQL' in score.quiz_name %}
-                                                    <span class="badge bg-info">SQL</span>
+                                                {% set quiz_lower = score.quiz_name|lower %}
+                                                {% if 'computer' in quiz_lower %}
+                                                    <span class="badge bg-primary">💻</span>
+                                                {% elif 'science' in quiz_lower or 'nature' in quiz_lower %}
+                                                    <span class="badge bg-success">🔬</span>
+                                                {% elif 'math' in quiz_lower %}
+                                                    <span class="badge bg-info">🔢</span>
+                                                {% elif 'history' in quiz_lower %}
+                                                    <span class="badge bg-warning">📜</span>
+                                                {% elif 'geography' in quiz_lower %}
+                                                    <span class="badge bg-info">🌍</span>
+                                                {% elif 'sport' in quiz_lower %}
+                                                    <span class="badge bg-success">⚽</span>
+
+                                                {% elif 'art' in quiz_lower %}
+                                                    <span class="badge bg-danger">🎨</span>
+                                                {% elif 'general knowledge' in quiz_lower %}
+                                                    <span class="badge bg-primary">🧠</span>
+                                                {% elif 'celebrit' in quiz_lower %}
+                                                    <span class="badge bg-warning">⭐</span>
                                                 {% else %}
                                                     <span class="badge bg-secondary">📝</span>
                                                 {% endif %}
@@ -153,41 +167,5 @@
 <!-- Add Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-<style>
-.card {
-    transition: all 0.3s ease;
-}
-.card:hover {
-    transform: translateY(-5px);
-}
-.progress {
-    background-color: #f0f0f0;
-    border-radius: 10px;
-}
-.progress-bar {
-    border-radius: 10px;
-}
-.quiz-icon .badge {
-    width: 35px;
-    height: 35px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-}
-.bg-primary {
-    background: linear-gradient(45deg, #007bff, #6610f2) !important;
-}
-.table th {
-    font-weight: 600;
-    color: #495057;
-}
-.table td {
-    vertical-align: middle;
-}
-.card-header h4 {
-    color: #495057;
-    font-weight: 600;
-}
-</style>
+
 {% endblock %}
