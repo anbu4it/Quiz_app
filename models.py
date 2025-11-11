@@ -18,6 +18,16 @@ class User(UserMixin, db.Model):
 
 
 class Score(db.Model):
+    __tablename__ = "score"
+    __table_args__ = (
+        # Index for user's quiz history (dashboard queries)
+        db.Index('idx_user_date', 'user_id', 'date_taken'),
+        # Index for leaderboard per-category queries
+        db.Index('idx_quiz_name', 'quiz_name'),
+        # Composite index for leaderboard ranking (quiz + score DESC)
+        db.Index('idx_quiz_score', 'quiz_name', 'score'),
+    )
+    
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     quiz_name = db.Column(db.String(100), nullable=False)

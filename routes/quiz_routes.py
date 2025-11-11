@@ -7,8 +7,15 @@ from services.session_helper import SessionHelper
 
 quiz_bp = Blueprint("quiz", __name__)
 
+# Import limiter if available (will be None if not installed)
+try:
+    from app import limiter
+except ImportError:
+    limiter = None
+
 
 @quiz_bp.route("/quiz", methods=["POST"])
+@limiter.limit("10 per minute") if limiter else lambda f: f
 def quiz():
     """
     Start a quiz: validate name & topics, fetch 5 questions and store in session,

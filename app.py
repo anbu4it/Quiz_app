@@ -22,7 +22,24 @@ from routes.main_routes import main_bp
 from routes.quiz_routes import quiz_bp
 from routes.result_routes import result_bp
 
+# Sentry SDK (optional - only if SENTRY_DSN is set)
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.flask import FlaskIntegration
+    SENTRY_AVAILABLE = True
+except ImportError:
+    SENTRY_AVAILABLE = False
+
+# Flask-Limiter for rate limiting (optional)
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+    LIMITER_AVAILABLE = True
+except ImportError:
+    LIMITER_AVAILABLE = False
+
 login_manager = LoginManager()
+limiter = None  # Will be initialized in create_app if available
 
 
 @login_manager.user_loader
@@ -42,6 +59,20 @@ def load_user(user_id):
 def create_app(test_config: dict | None = None):
     # Load environment variables from .env when running via python app.py
     load_dotenv()
+    
+    # Initialize Sentry if DSN is provided and not in testing mode
+    if SENTRY_AVAILABLE and not (test_config and test_config.get("TESTING")):
+        sentry_dsn = os.getenv("SENTRY_DSN")
+        if sentry_dsn:
+            sentry_sdk.init(
+                dsn=sentry_dsn,
+                integrations=[FlaskIntegration()],
+                traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
+                environment=os.getenv("SENTRY_ENVIRONMENT", "production"),
+                release=os.getenv("RENDER_GIT_COMMIT", "unknown"),
+            )
+            logging.getLogger(__name__).info("Sentry initialized")
+    
     app = Flask(
         __name__,
         static_folder="static",
@@ -88,6 +119,22 @@ def create_app(test_config: dict | None = None):
             pass
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
+    
+    # Initialize Flask-Limiter if available (graceful degradation)
+    global limiter
+    if LIMITER_AVAILABLE and not app.config.get("TESTING"):
+        # Use in-memory storage by default; can switch to Redis via RATELIMIT_STORAGE_URL env var
+        storage_uri = os.getenv("RATELIMIT_STORAGE_URL", "memory://")
+        limiter = Limiter(
+            app=app,
+            key_func=get_remote_address,
+            default_limits=["200 per day", "50 per hour"],
+            storage_uri=storage_uri,
+            strategy="fixed-window",
+        )
+        app.logger.info("Flask-Limiter initialized with storage: %s", storage_uri)
+    else:
+        limiter = None
 
     @login_manager.unauthorized_handler
     def _unauthorized():
@@ -289,18 +336,36 @@ def create_app(test_config: dict | None = None):
         code = 200 if (status["db"] or not strict) else 503
         return status, code
 
-    # Basic security headers & proxy fix
+    # Comprehensive security headers
     @app.after_request
     def set_security_headers(resp):
+        # Prevent clickjacking
         resp.headers.setdefault("X-Frame-Options", "DENY")
+        # Prevent MIME sniffing
         resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+        # Control referrer information
         resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        # Disable dangerous browser features
         resp.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
-        # Simple CSP (adjust as needed)
-        resp.headers.setdefault(
-            "Content-Security-Policy",
-            "default-src 'self'; style-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/bootstrap@5.3.0 'unsafe-inline'; script-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/bootstrap@5.3.0 'unsafe-inline'; img-src 'self' data: https://res.cloudinary.com;",
-        )
+        # Force HTTPS in production (skip in development/testing)
+        if not app.config.get("TESTING") and not app.debug:
+            resp.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        
+        # Comprehensive Content Security Policy
+        csp_directives = [
+            "default-src 'self'",
+            "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'",  # unsafe-inline needed for Bootstrap
+            "style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'",   # unsafe-inline needed for inline styles
+            "img-src 'self' data: https://res.cloudinary.com https:",       # Allow cloudinary and external images
+            "font-src 'self' https://cdn.jsdelivr.net data:",
+            "connect-src 'self'",
+            "frame-ancestors 'none'",  # Modern alternative to X-Frame-Options
+            "base-uri 'self'",
+            "form-action 'self'",
+            "object-src 'none'",
+            "upgrade-insecure-requests"  # Automatically upgrade HTTP to HTTPS
+        ]
+        resp.headers.setdefault("Content-Security-Policy", "; ".join(csp_directives))
         return resp
 
     # Respect X-Forwarded-Proto for HTTPS redirects behind Render proxy

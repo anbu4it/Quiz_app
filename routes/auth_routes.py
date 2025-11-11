@@ -47,7 +47,13 @@ def _remove_avatar_file(avatar_path: str):
 
 auth_bp = Blueprint("auth", __name__)
 
-# Simple in-memory rate limiting for login attempts per IP
+# Import limiter if available (will be None if not installed)
+try:
+    from app import limiter
+except ImportError:
+    limiter = None
+
+# Simple in-memory rate limiting for login attempts per IP (legacy fallback)
 _LOGIN_ATTEMPTS: Dict[str, List[float]] = {}
 _LOGIN_WINDOW = 10 * 60  # 10 minutes
 _LOGIN_MAX = 5
@@ -69,6 +75,7 @@ def _rate_limit_ip(ip: str) -> bool:
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
+@limiter.limit("5 per hour") if limiter else lambda f: f
 def register():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -214,6 +221,7 @@ def register():
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute") if limiter else lambda f: f
 def login():
     if request.method == "POST":
         # Basic per-IP rate limit
