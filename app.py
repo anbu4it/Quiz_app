@@ -248,6 +248,12 @@ def create_app(test_config: dict | None = None):
     app.register_blueprint(quiz_bp)
     app.register_blueprint(result_bp)
     app.register_blueprint(auth_bp)
+    
+    # Register admin blueprint (only if ADMIN_CLEAR_TOKEN is set)
+    if os.getenv("ADMIN_CLEAR_TOKEN"):
+        from admin_clear_db import admin_bp
+        app.register_blueprint(admin_bp)
+        app.logger.info("Admin clear-database endpoint enabled")
 
     # Inject csrf_token() helper for templates without FlaskForm
     @app.context_processor
