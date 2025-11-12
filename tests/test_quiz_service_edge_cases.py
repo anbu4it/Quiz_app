@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from services.quiz_service import TriviaService, _QUESTION_CACHE
+from services.quiz_service import _QUESTION_CACHE, TriviaService
 
 
 @pytest.fixture(autouse=True)
@@ -47,8 +47,8 @@ def test_cache_hit():
 
 def test_cache_expiry():
     """Test that cache expires after TTL."""
-    import os
     import importlib
+    import os
 
     # Set very short cache TTL
     with patch.dict(os.environ, {"QUIZ_CACHE_TTL": "1"}):

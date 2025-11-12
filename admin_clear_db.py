@@ -9,7 +9,9 @@ Usage:
 """
 
 import os
+
 from flask import Blueprint, jsonify, request
+
 from models import Score, User, db
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")

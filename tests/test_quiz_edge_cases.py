@@ -1,12 +1,12 @@
 """Tests for quiz route error handling and edge cases."""
 
-import pytest
 from unittest.mock import patch
 
-from app import create_app
-from models import db
+import pytest
 from werkzeug.security import generate_password_hash
-from models import User
+
+from app import create_app
+from models import User, db
 
 
 @pytest.fixture
