@@ -26,6 +26,7 @@ from routes.result_routes import result_bp
 try:
     import sentry_sdk
     from sentry_sdk.integrations.flask import FlaskIntegration
+
     SENTRY_AVAILABLE = True
 except ImportError:
     SENTRY_AVAILABLE = False
@@ -34,6 +35,7 @@ except ImportError:
 try:
     from flask_limiter import Limiter
     from flask_limiter.util import get_remote_address
+
     LIMITER_AVAILABLE = True
 except ImportError:
     LIMITER_AVAILABLE = False
@@ -59,7 +61,7 @@ def load_user(user_id):
 def create_app(test_config: dict | None = None):
     # Load environment variables from .env when running via python app.py
     load_dotenv()
-    
+
     # Initialize Sentry if DSN is provided and not in testing mode
     if SENTRY_AVAILABLE and not (test_config and test_config.get("TESTING")):
         sentry_dsn = os.getenv("SENTRY_DSN")
@@ -72,7 +74,7 @@ def create_app(test_config: dict | None = None):
                 release=os.getenv("RENDER_GIT_COMMIT", "unknown"),
             )
             logging.getLogger(__name__).info("Sentry initialized")
-    
+
     app = Flask(
         __name__,
         static_folder="static",
@@ -119,7 +121,7 @@ def create_app(test_config: dict | None = None):
             pass
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
-    
+
     # Initialize Flask-Limiter if available (graceful degradation)
     global limiter
     if LIMITER_AVAILABLE and not app.config.get("TESTING"):
@@ -248,10 +250,11 @@ def create_app(test_config: dict | None = None):
     app.register_blueprint(quiz_bp)
     app.register_blueprint(result_bp)
     app.register_blueprint(auth_bp)
-    
+
     # Register admin blueprint (only if ADMIN_CLEAR_TOKEN is set)
     if os.getenv("ADMIN_CLEAR_TOKEN"):
         from admin_clear_db import admin_bp
+
         app.register_blueprint(admin_bp)
         app.logger.info("Admin clear-database endpoint enabled")
 
@@ -355,21 +358,23 @@ def create_app(test_config: dict | None = None):
         resp.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
         # Force HTTPS in production (skip in development/testing)
         if not app.config.get("TESTING") and not app.debug:
-            resp.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-        
+            resp.headers.setdefault(
+                "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+            )
+
         # Comprehensive Content Security Policy
         csp_directives = [
             "default-src 'self'",
             "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'",  # unsafe-inline needed for Bootstrap
-            "style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'",   # unsafe-inline needed for inline styles
-            "img-src 'self' data: https://res.cloudinary.com https:",       # Allow cloudinary and external images
+            "style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'",  # unsafe-inline needed for inline styles
+            "img-src 'self' data: https://res.cloudinary.com https:",  # Allow cloudinary and external images
             "font-src 'self' https://cdn.jsdelivr.net data:",
             "connect-src 'self'",
             "frame-ancestors 'none'",  # Modern alternative to X-Frame-Options
             "base-uri 'self'",
             "form-action 'self'",
             "object-src 'none'",
-            "upgrade-insecure-requests"  # Automatically upgrade HTTP to HTTPS
+            "upgrade-insecure-requests",  # Automatically upgrade HTTP to HTTPS
         ]
         resp.headers.setdefault("Content-Security-Policy", "; ".join(csp_directives))
         return resp

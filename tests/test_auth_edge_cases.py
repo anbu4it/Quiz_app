@@ -30,6 +30,7 @@ def logged_in_user(client, app):
     """Create and login a user."""
     # Clear rate limiter state for this session
     from routes.auth_routes import _LOGIN_ATTEMPTS
+
     _LOGIN_ATTEMPTS.clear()
 
     with app.app_context():
@@ -102,6 +103,7 @@ def test_profile_remove_avatar(app):
     """Test removing existing avatar."""
     # Clear rate limiter
     from routes.auth_routes import _LOGIN_ATTEMPTS
+
     _LOGIN_ATTEMPTS.clear()
 
     client = app.test_client()
@@ -112,7 +114,7 @@ def test_profile_remove_avatar(app):
             username="avatartest",
             email="avatar@test.com",
             password_hash=generate_password_hash("Test123!"),
-            avatar="uploads/test_avatar.png"
+            avatar="uploads/test_avatar.png",
         )
         db.session.add(user)
         db.session.commit()
@@ -126,13 +128,9 @@ def test_profile_remove_avatar(app):
     # Remove avatar
     response = client.post(
         "/profile",
-        data={
-            "remove_avatar": "1",
-            "full_name": "",
-            "bio": ""
-        },
+        data={"remove_avatar": "1", "full_name": "", "bio": ""},
         content_type="multipart/form-data",
-        follow_redirects=True
+        follow_redirects=True,
     )
 
     assert response.status_code == 200
@@ -188,7 +186,9 @@ def test_registration_duplicate_email(client, app):
 def test_registration_weak_password_production_mode(app):
     """Test password policy enforcement in production mode."""
     # Create non-TESTING app to enable strict password checks
-    prod_app = create_app({"SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:", "WTF_CSRF_ENABLED": False})
+    prod_app = create_app(
+        {"SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:", "WTF_CSRF_ENABLED": False}
+    )
     client = prod_app.test_client()
 
     with prod_app.app_context():
@@ -203,7 +203,7 @@ def test_registration_weak_password_production_mode(app):
             "password": "password123!",
             "confirm_password": "password123!",
         },
-        follow_redirects=False
+        follow_redirects=False,
     )
 
     assert response.status_code == 200
@@ -240,6 +240,7 @@ def test_login_missing_credentials(app):
     """Test login with missing username or password."""
     # Clear rate limiter state
     from routes.auth_routes import _LOGIN_ATTEMPTS
+
     _LOGIN_ATTEMPTS.clear()
 
     # Create fresh client without prior rate limiting
@@ -253,10 +254,13 @@ def test_login_missing_credentials(app):
 
     assert response.status_code == 200
     assert b"Both username and password are required" in response.data
+
+
 def test_login_invalid_credentials(app):
     """Test login with wrong password."""
     # Clear rate limiter state
     from routes.auth_routes import _LOGIN_ATTEMPTS
+
     _LOGIN_ATTEMPTS.clear()
 
     # Create fresh client to avoid rate limiting interference
@@ -278,10 +282,13 @@ def test_login_invalid_credentials(app):
     )
 
     assert b"Invalid username or password" in response.data
+
+
 def test_logout_clears_session(app):
     """Test that logout properly clears session."""
     # Clear rate limiter state
     from routes.auth_routes import _LOGIN_ATTEMPTS
+
     _LOGIN_ATTEMPTS.clear()
 
     # Create fresh client to avoid rate limiting
@@ -305,7 +312,7 @@ def test_logout_clears_session(app):
 
     # Verify logged in
     dash_before = client.get("/dashboard")
-    assert dash_before.status_code == 200    # Logout
+    assert dash_before.status_code == 200  # Logout
     client.get("/logout", follow_redirects=True)
 
     # Dashboard should now redirect to login

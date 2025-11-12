@@ -78,7 +78,9 @@ def test_upload_avatar_to_cloudinary(mock_upload, app):
         mock_upload.assert_called_once()
 
 
-@patch("services.cloudinary_service.cloudinary.uploader.upload", side_effect=Exception("Upload failed"))
+@patch(
+    "services.cloudinary_service.cloudinary.uploader.upload", side_effect=Exception("Upload failed")
+)
 def test_upload_avatar_cloudinary_fallback_to_local(mock_upload, app):
     """Test fallback to local storage when Cloudinary upload fails."""
     with patch.dict(

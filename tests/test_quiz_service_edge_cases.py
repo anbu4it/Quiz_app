@@ -54,8 +54,9 @@ def test_cache_expiry():
     with patch.dict(os.environ, {"QUIZ_CACHE_TTL": "1"}):
         # Reload module to pick up new env var
         from services import quiz_service
+
         importlib.reload(quiz_service)
-        
+
         TriviaService = quiz_service.TriviaService
         svc = TriviaService(retries=1)
 
@@ -198,7 +199,7 @@ def test_html_unescaping():
         assert questions[0]["question"] == "What's 2 & 2?"
         assert questions[0]["correct"] == "Four <4>"
         # Options should include unescaped text
-        assert any("One \"1\"" in opt for opt in questions[0]["options"])
+        assert any('One "1"' in opt for opt in questions[0]["options"])
 
 
 def test_options_shuffling():

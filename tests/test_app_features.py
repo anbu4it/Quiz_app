@@ -29,6 +29,7 @@ def test_404_error_handler(client):
 
 def test_500_error_handler(app):
     """Test 500 error handler."""
+
     # Create a route that raises an exception
     @app.route("/trigger-500")
     def trigger_500():
@@ -155,7 +156,7 @@ def test_avatar_url_filter_local(app):
     with client:
         # Make a request to establish request context
         client.get("/")
-        
+
         avatar_filter = app.jinja_env.filters["avatar_url"]
         local_path = "uploads/avatar.png"
         result = avatar_filter(local_path)
@@ -168,7 +169,7 @@ def test_avatar_url_filter_none(app):
     with client:
         # Make a request to establish request context
         client.get("/")
-        
+
         avatar_filter = app.jinja_env.filters["avatar_url"]
         result = avatar_filter(None)
         assert "default-avatar.svg" in result

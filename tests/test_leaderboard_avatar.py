@@ -75,6 +75,7 @@ def test_leaderboard_shows_custom_avatar():
     """Original avatar test adapted to pytest: user has custom avatar path displayed."""
     # Clear rate limiter state
     from routes.auth_routes import _LOGIN_ATTEMPTS
+
     _LOGIN_ATTEMPTS.clear()
 
     # Create fresh app to avoid rate limiting

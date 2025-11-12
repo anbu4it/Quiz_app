@@ -27,6 +27,7 @@ def logged_in_user(client, app):
     """Create and login a user."""
     # Clear rate limiter state
     from routes.auth_routes import _LOGIN_ATTEMPTS
+
     _LOGIN_ATTEMPTS.clear()
 
     with app.app_context():
@@ -77,9 +78,7 @@ def test_quiz_service_exception_handling(client):
     with patch("routes.quiz_routes.TriviaService.fetch_questions_for_topics") as mock_fetch:
         mock_fetch.side_effect = Exception("API failure")
 
-        response = client.post(
-            "/quiz", data={"username": "testuser", "quiz_type": "History"}
-        )
+        response = client.post("/quiz", data={"username": "testuser", "quiz_type": "History"})
 
         assert response.status_code == 503
         assert b"Unable to load quiz questions" in response.data
@@ -90,9 +89,7 @@ def test_quiz_empty_questions_response(client):
     with patch("routes.quiz_routes.TriviaService.fetch_questions_for_topics") as mock_fetch:
         mock_fetch.return_value = []
 
-        response = client.post(
-            "/quiz", data={"username": "testuser", "quiz_type": "Computers"}
-        )
+        response = client.post("/quiz", data={"username": "testuser", "quiz_type": "Computers"})
 
         assert response.status_code == 503
         assert b"Unable to load quiz questions" in response.data
