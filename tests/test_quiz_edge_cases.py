@@ -57,20 +57,23 @@ def test_quiz_with_empty_topics(client):
 
 def test_quiz_logged_in_uses_authenticated_username(logged_in_user):
     """Test that logged-in user's username is used from current_user."""
-    response = logged_in_user.post(
-        "/quiz",
-        data={"username": "DifferentUser", "quiz_type": "Science & Nature"},
-        follow_redirects=True,
-    )
+    with patch("routes.quiz_routes.TriviaService.fetch_questions_for_topics") as mock_fetch:
+        mock_fetch.return_value = [
+            {"question": "Q1", "correct": "A", "options": ["A", "B", "C", "D"]},
+            {"question": "Q2", "correct": "B", "options": ["A", "B", "C", "D"]},
+        ]
+        response = logged_in_user.post(
+            "/quiz",
+            data={"username": "DifferentUser", "quiz_type": "Science & Nature"},
+            follow_redirects=True,
+        )
 
-    assert response.status_code == 200
+        assert response.status_code == 200
 
-    # Session should have authenticated username
-    # Note: quiz_routes uses current_user.username when authenticated
-    with logged_in_user.session_transaction() as sess:
-        # The route uses current_user.username which is "quizuser"
-        username = sess.get("username")
-        assert username == "quizuser"
+        # Session should have authenticated username
+        with logged_in_user.session_transaction() as sess:
+            username = sess.get("username")
+            assert username == "quizuser"
 
 
 def test_quiz_service_exception_handling(client):
@@ -192,13 +195,17 @@ def test_quiz_multi_topic_selection(client):
 
 def test_quiz_single_topic_category_name(client):
     """Test that single topic uses its name as category."""
-    response = client.post(
-        "/quiz",
-        data={"username": "testuser", "topics": ["Mathematics"]},
-        follow_redirects=True,
-    )
+    with patch("routes.quiz_routes.TriviaService.fetch_questions_for_topics") as mock_fetch:
+        mock_fetch.return_value = [
+            {"question": "Q1", "correct": "A", "options": ["A", "B", "C", "D"]},
+        ]
+        response = client.post(
+            "/quiz",
+            data={"username": "testuser", "topics": ["Mathematics"]},
+            follow_redirects=True,
+        )
 
-    assert response.status_code == 200
+        assert response.status_code == 200
 
-    with client.session_transaction() as sess:
-        assert sess.get("quiz_category") == "Mathematics"
+        with client.session_transaction() as sess:
+            assert sess.get("quiz_category") == "Mathematics"
