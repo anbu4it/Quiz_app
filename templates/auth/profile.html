@@ -22,13 +22,13 @@
             <div class="d-flex align-items-center gap-4 mb-4 flex-wrap">
                 <div class="avatar-shell shadow-sm">
                     {% if current_user.avatar %}
-                        <img src="{{ current_user.avatar|avatar_url(avatar_version) }}" alt="avatar">
+                        <img id="avatarPreview" src="{{ current_user.avatar|avatar_url(avatar_version) }}" alt="avatar">
                     {% else %}
-                        <div class="avatar-fallback bg-secondary d-flex align-items-center justify-content-center text-white fw-bold" style="font-size:38px;">{{ current_user.username[0]|upper }}</div>
+                        <div id="avatarPreviewFallback" class="avatar-fallback bg-secondary d-flex align-items-center justify-content-center text-white fw-bold" style="font-size:38px;">{{ current_user.username[0]|upper }}</div>
                     {% endif %}
                     <label class="btn btn-sm btn-primary avatar-edit-btn" title="Upload new">
                         <span style="font-size:0.85rem;">Change</span>
-                        <input type="file" name="avatar" hidden accept="image/png,image/jpeg,image/jpg,image/gif">
+                        <input type="file" name="avatar" id="avatarInput" hidden accept="image/png,image/jpeg,image/jpg,image/gif">
                     </label>
                 </div>
                 <div class="flex-grow-1 small text-muted">
@@ -64,5 +64,38 @@
             </div>
         </form>
     </div>
+    </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('avatarInput');
+    var preview = document.getElementById('avatarPreview');
+    var fallback = document.getElementById('avatarPreviewFallback');
+    if (input) {
+        input.addEventListener('change', function(e) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(ev) {
+                    if (preview) {
+                        preview.src = ev.target.result;
+                    } else if (fallback) {
+                        var img = document.createElement('img');
+                        img.id = 'avatarPreview';
+                        img.src = ev.target.result;
+                        img.alt = 'avatar';
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.borderRadius = '50%';
+                        img.style.objectFit = 'cover';
+                        fallback.replaceWith(img);
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

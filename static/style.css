@@ -198,6 +198,24 @@ body{
   color: #000000;
 }
 
+/* Restore previous subtle highlight for active navbar tab */
+.navbar .nav-link.active {
+  color: var(--brand) !important;
+  font-weight: 700;
+  border-bottom: 2px solid var(--brand);
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+[data-theme="dark"] .navbar .nav-link.active {
+  color: var(--brand) !important;
+  font-weight: 700;
+  border-bottom: 2px solid var(--brand);
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 /* Hero and utilities */
 .hero-blur{
   position: absolute; inset: -20% -10% auto -10%; height: 220px; z-index: 0; pointer-events: none;
