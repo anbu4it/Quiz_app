@@ -175,22 +175,30 @@ def test_question_get_shows_progress_bar(client):
 
 def test_quiz_multi_topic_selection(client):
     """Test quiz creation with multiple topics."""
-    response = client.post(
-        "/quiz",
-        data={
-            "username": "testuser",
-            "topics": ["General Knowledge", "Science & Nature", "Computers"],
-        },
-        follow_redirects=True,
-    )
+    with patch("routes.quiz_routes.TriviaService.fetch_questions_for_topics") as mock_fetch:
+        mock_fetch.return_value = [
+            {"question": "Q1", "correct": "A", "options": ["A", "B", "C", "D"]},
+            {"question": "Q2", "correct": "B", "options": ["A", "B", "C", "D"]},
+            {"question": "Q3", "correct": "C", "options": ["A", "B", "C", "D"]},
+            {"question": "Q4", "correct": "D", "options": ["A", "B", "C", "D"]},
+            {"question": "Q5", "correct": "A", "options": ["A", "B", "C", "D"]},
+        ]
+        response = client.post(
+            "/quiz",
+            data={
+                "username": "testuser",
+                "topics": ["General Knowledge", "Science & Nature", "Computers"],
+            },
+            follow_redirects=True,
+        )
 
-    assert response.status_code == 200
+        assert response.status_code == 200
 
-    with client.session_transaction() as sess:
-        questions = sess.get("questions", [])
-        assert len(questions) == 5  # Should fetch 5 questions
-        # Category should be "Mixed Topics" for multiple selections
-        assert sess.get("quiz_category") in ["General Knowledge", "Mixed Topics"]
+        with client.session_transaction() as sess:
+            questions = sess.get("questions", [])
+            assert len(questions) == 5  # Should fetch 5 questions
+            # Category should be "Mixed Topics" for multiple selections
+            assert sess.get("quiz_category") in ["General Knowledge", "Mixed Topics"]
 
 
 def test_quiz_single_topic_category_name(client):
