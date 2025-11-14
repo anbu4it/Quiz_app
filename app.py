@@ -82,8 +82,8 @@ def create_app(test_config: dict | None = None):
         instance_path=Config.INSTANCE_PATH,
     )
     app.config.from_object(Config)
-    app.config['TEMPLATES_AUTO_RELOAD'] = True
-    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
+    app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
     app.jinja_env.auto_reload = True
     app.debug = True
 
