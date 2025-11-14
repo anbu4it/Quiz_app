@@ -1,38 +1,305 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="result-wrap">
-    <div class="result-card p-4 p-md-5 text-center">
-        <div class="mb-3"><span class="pill">Quiz completed</span></div>
-        <h2 class="mb-2">Great job, <span class="brand-gradient">{{ username }}</span>!</h2>
-        <div class="score-big mb-1" id="scoreText" data-score="{{ score }}" data-total="{{ total }}">{{ score }} / {{ total }}</div>
-        <div class="small text-muted">Your accuracy</div>
-        <div class="progress my-3" aria-label="Score accuracy">
-            <div class="progress-bar {% if score / total >= 0.7 %}bg-success{% elif score / total >= 0.4 %}bg-warning{% else %}bg-danger{% endif %}" style="width: 0%" data-target="{{ (score / total * 100)|round(0) }}"></div>
-        </div>
-        <div class="mb-3">
-            <span class="fw-semibold" id="percentText">{{ (score / total * 100)|round(0) }}%</span>
-        </div>
+<style>
+    .result-page {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .result-page::before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(102,126,234,0.15), transparent);
+        border-radius: 50%;
+        filter: blur(80px);
+        pointer-events: none;
+        z-index: -1;
+    }
+    .result-page::after {
+        content: '';
+        position: absolute;
+        bottom: -100px;
+        left: -100px;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(139,92,246,0.12), transparent);
+        border-radius: 50%;
+        filter: blur(70px);
+        pointer-events: none;
+        z-index: -1;
+    }
+    .result-card-premium {
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        border: 2px solid rgba(200,200,255,0.25);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(13,110,253,0.15);
+        max-width: 700px;
+        width: 100%;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+        animation: slideUp 0.5s ease;
+    }
+    [data-theme="dark"] .result-card-premium {
+        background: rgba(30,41,59,0.9);
+        border: 2px solid rgba(96,165,250,0.25);
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .result-badge {
+        display: inline-block;
+        padding: 0.5rem 1.25rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1.5rem;
+        animation: fadeIn 0.5s ease 0.2s both;
+    }
+    .result-badge-success {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(17,153,142,0.3);
+    }
+    .result-badge-warning {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(240,147,251,0.3);
+    }
+    .result-badge-danger {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(255,107,107,0.3);
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .result-title {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        animation: fadeIn 0.5s ease 0.3s both;
+    }
+    .username-gradient {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    .score-display {
+        font-size: 4rem;
+        font-weight: 900;
+        line-height: 1;
+        margin: 1.5rem 0;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: fadeIn 0.5s ease 0.4s both;
+    }
+    .score-label {
+        font-size: 0.95rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    .progress-premium {
+        height: 16px;
+        border-radius: 50px;
+        background: rgba(13,110,253,0.1);
+        overflow: hidden;
+        margin: 2rem 0 1rem;
+        box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+    }
+    [data-theme="dark"] .progress-premium {
+        background: rgba(96,165,250,0.15);
+    }
+    .progress-premium .progress-bar {
+        border-radius: 50px;
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .progress-premium .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: shimmer 2s infinite;
+    }
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    .progress-premium .bg-success {
+        background: linear-gradient(90deg, #11998e, #38ef7d) !important;
+    }
+    .progress-premium .bg-warning {
+        background: linear-gradient(90deg, #f093fb, #f5576c) !important;
+    }
+    .progress-premium .bg-danger {
+        background: linear-gradient(90deg, #ff6b6b, #ee5a6f) !important;
+    }
+    .percentage-display {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--fg);
+        margin-bottom: 1.5rem;
+    }
+    .result-message {
+        font-size: 1.15rem;
+        font-weight: 500;
+        padding: 1.25rem;
+        border-radius: 16px;
+        margin: 1.5rem 0;
+        animation: fadeIn 0.5s ease 0.6s both;
+    }
+    .result-message-success {
+        background: linear-gradient(135deg, rgba(17,153,142,0.1), rgba(56,239,125,0.1));
+        border: 2px solid rgba(17,153,142,0.3);
+        color: #11998e;
+    }
+    .result-message-warning {
+        background: linear-gradient(135deg, rgba(240,147,251,0.1), rgba(245,87,108,0.1));
+        border: 2px solid rgba(240,147,251,0.3);
+        color: #f093fb;
+    }
+    .result-message-danger {
+        background: linear-gradient(135deg, rgba(255,107,107,0.1), rgba(238,90,111,0.1));
+        border: 2px solid rgba(255,107,107,0.3);
+        color: #ff6b6b;
+    }
+    [data-theme="dark"] .result-message-success { color: #38ef7d; }
+    [data-theme="dark"] .result-message-warning { color: #f5576c; }
+    [data-theme="dark"] .result-message-danger { color: #ee5a6f; }
+    .result-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: center;
+        margin-top: 2rem;
+        animation: fadeIn 0.5s ease 0.7s both;
+    }
+    .btn-result-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        color: #fff;
+        padding: 0.75rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(102,126,234,0.3);
+    }
+    .btn-result-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(102,126,234,0.4);
+        color: #fff;
+    }
+    .btn-result-outline {
+        background: rgba(255,255,255,0.5);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(102,126,234,0.3);
+        color: var(--fg);
+        padding: 0.75rem 1.75rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-result-outline:hover {
+        background: rgba(102,126,234,0.15);
+        border-color: rgba(102,126,234,0.5);
+        transform: translateY(-3px);
+        color: var(--fg);
+    }
+    [data-theme="dark"] .btn-result-outline {
+        background: rgba(30,41,59,0.5);
+        border-color: rgba(96,165,250,0.3);
+    }
+    [data-theme="dark"] .btn-result-outline:hover {
+        background: rgba(96,165,250,0.15);
+        border-color: rgba(96,165,250,0.5);
+    }
+    @media (max-width: 768px) {
+        .result-page::before,
+        .result-page::after {
+            width: 250px;
+            height: 250px;
+        }
+        .result-title { font-size: 1.5rem; }
+        .score-display { font-size: 3rem; }
+        .result-message { font-size: 1rem; padding: 1rem; }
+        .result-actions { flex-direction: column; }
+        .btn-result-primary,
+        .btn-result-outline { width: 100%; }
+    }
+</style>
 
-        <p class="lead mb-3 {% if score / total >= 0.7 %}text-success{% elif score / total >= 0.4 %}text-warning{% else %}text-danger{% endif %}">
-            {% if score / total >= 0.7 %}
-                🌟 Excellent performance! You're doing great!
-            {% elif score / total >= 0.4 %}
-                💪 Good effort! Keep practicing to improve!
-            {% else %}
-                😊 Don't worry, practice makes perfect!
-            {% endif %}
-        </p>
-
-        <div class="actions d-flex flex-wrap gap-2 justify-content-center mt-4">
-            <a href="{{ url_for('main.index') }}" class="btn btn-primary">Try another quiz 🚀</a>
-            {% if current_user.is_authenticated %}
-            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-primary">View dashboard 📊</a>
-            {% else %}
-            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-success">Sign up to track progress 📈</a>
-            {% endif %}
-            <button type="button" class="btn btn-outline-secondary" id="btnShare">Share score</button>
-        </div>
+<div class="container result-page">
+    <div class="result-card-premium p-4 p-md-5 text-center">
+                {% if score / total >= 0.7 %}
+                <div class="result-badge result-badge-success">✨ Excellent</div>
+                {% elif score / total >= 0.4 %}
+                <div class="result-badge result-badge-warning">💪 Good Effort</div>
+                {% else %}
+                <div class="result-badge result-badge-danger">😊 Keep Trying</div>
+                {% endif %}
+                
+                <h2 class="result-title">Great job, <span class="username-gradient">{{ username }}</span>!</h2>
+                <div class="score-display" id="scoreText" data-score="{{ score }}" data-total="{{ total }}">{{ score }} / {{ total }}</div>
+                <div class="score-label">Your Accuracy</div>
+                <div class="progress progress-premium" aria-label="Score accuracy">
+                    <div class="progress-bar {% if score / total >= 0.7 %}bg-success{% elif score / total >= 0.4 %}bg-warning{% else %}bg-danger{% endif %}" style="width: 0%" data-target="{{ (score / total * 100)|round(0) }}"></div>
+                </div>
+                <div class="percentage-display">
+                    <span id="percentText">{{ (score / total * 100)|round(0) }}%</span>
+                </div>
+                
+                <div class="result-message {% if score / total >= 0.7 %}result-message-success{% elif score / total >= 0.4 %}result-message-warning{% else %}result-message-danger{% endif %}">
+                    {% if score / total >= 0.7 %}
+                        🌟 Excellent performance! You're mastering this topic!
+                    {% elif score / total >= 0.4 %}
+                        💪 Good effort! Keep practicing to reach excellence!
+                    {% else %}
+                        😊 Don't worry, every expert was once a beginner. Keep learning!
+                    {% endif %}
+                </div>
+                
+                <div class="result-actions">
+                    <a href="{{ url_for('main.index') }}" class="btn btn-result-primary">
+                        <i class="bi bi-arrow-repeat me-2"></i>Try Another Quiz
+                    </a>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.dashboard') }}" class="btn btn-result-outline">
+                        <i class="bi bi-bar-chart me-2"></i>View Dashboard
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-result-outline">
+                        <i class="bi bi-person-plus me-2"></i>Sign Up
+                    </a>
+                    {% endif %}
+                    <button type="button" class="btn btn-result-outline" id="btnShare">
+                        <i class="bi bi-share me-2"></i>Share Score
+                    </button>
+                </div>
     </div>
 </div>
 
