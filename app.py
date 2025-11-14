@@ -82,6 +82,10 @@ def create_app(test_config: dict | None = None):
         instance_path=Config.INSTANCE_PATH,
     )
     app.config.from_object(Config)
+    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+    app.jinja_env.auto_reload = True
+    app.debug = True
 
     # Allow overriding config for testing
     if test_config:
@@ -124,7 +128,8 @@ def create_app(test_config: dict | None = None):
 
     # Initialize Flask-Limiter if available (graceful degradation)
     global limiter
-    if LIMITER_AVAILABLE and not app.config.get("TESTING"):
+    # Disable rate limiting in debug mode for local development
+    if LIMITER_AVAILABLE and not app.config.get("TESTING") and not app.debug:
         # Use in-memory storage by default; can switch to Redis via RATELIMIT_STORAGE_URL env var
         storage_uri = os.getenv("RATELIMIT_STORAGE_URL", "memory://")
         limiter = Limiter(
@@ -137,6 +142,8 @@ def create_app(test_config: dict | None = None):
         app.logger.info("Flask-Limiter initialized with storage: %s", storage_uri)
     else:
         limiter = None
+        if app.debug:
+            app.logger.info("Rate limiting disabled in debug mode")
 
     @login_manager.unauthorized_handler
     def _unauthorized():

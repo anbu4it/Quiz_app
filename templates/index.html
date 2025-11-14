@@ -4,59 +4,341 @@
 
 {% block content %}
 <style>
-    .topic-label{ transition:.2s ease; }
-    .topic-label:hover{ transform:translateY(-2px); box-shadow:0 4px 14px rgba(2,6,23,0.08); }
-    .features-list li{ padding:.35rem 0; }
-    .floating-orb{ position:absolute; width:140px; height:140px; border-radius:50%; background:radial-gradient(circle at 30% 30%, rgba(13,110,253,.55), rgba(139,92,246,.45)); top:-40px; right:-40px; filter:blur(40px); opacity:.35; pointer-events:none; }
-    .hero-heading{ line-height:1.1; letter-spacing:-.02em; }
+    .home-hero {
+        position: relative;
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        padding: 3rem 0;
+        overflow: hidden;
+    }
+    .home-hero::before {
+        content: '';
+        position: absolute;
+        top: -150px;
+        right: -150px;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(102,126,234,0.2), transparent);
+        border-radius: 50%;
+        filter: blur(100px);
+        pointer-events: none;
+        z-index: -1;
+        animation: floatOrb 20s ease-in-out infinite;
+    }
+    .home-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -100px;
+        left: -100px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(139,92,246,0.15), transparent);
+        border-radius: 50%;
+        filter: blur(80px);
+        pointer-events: none;
+        z-index: -1;
+        animation: floatOrb 15s ease-in-out infinite reverse;
+    }
+    @keyframes floatOrb {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(-30px, -30px) scale(1.1); }
+    }
+    .hero-content {
+        animation: fadeInUp 0.8s ease;
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    .hero-subtitle {
+        font-size: 1.25rem;
+        color: var(--muted);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+    .features-grid {
+        display: grid;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .feature-item {
+        display: flex;
+        align-items: start;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(102,126,234,0.05);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    .feature-item:hover {
+        background: rgba(102,126,234,0.1);
+        transform: translateX(5px);
+    }
+    [data-theme="dark"] .feature-item {
+        background: rgba(96,165,250,0.08);
+    }
+    [data-theme="dark"] .feature-item:hover {
+        background: rgba(96,165,250,0.15);
+    }
+    .feature-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    .feature-text {
+        font-size: 0.95rem;
+        color: var(--fg);
+        font-weight: 500;
+        margin: 0;
+    }
+    .quiz-card {
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        border: 2px solid rgba(200,200,255,0.25);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(13,110,253,0.15);
+        animation: fadeInUp 0.8s ease 0.2s both;
+    }
+    [data-theme="dark"] .quiz-card {
+        background: rgba(30,41,59,0.9);
+        border: 2px solid rgba(96,165,250,0.25);
+    }
+    .quiz-card-header {
+        padding: 1.5rem;
+        border-bottom: 2px solid rgba(13,110,253,0.1);
+    }
+    [data-theme="dark"] .quiz-card-header {
+        border-bottom: 2px solid rgba(96,165,250,0.15);
+    }
+    .card-title-gradient {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #0d6efd, #8b5cf6);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 0;
+    }
+    .topic-label { 
+        transition: all 0.3s ease;
+        border: 2px solid rgba(13,110,253,0.2);
+        background: rgba(255,255,255,0.5);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+        font-weight: 600;
+        position: relative;
+        overflow: hidden;
+    }
+    .topic-label::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+    }
+    .topic-label:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(13,110,253,0.15);
+        border-color: rgba(13,110,253,0.4);
+    }
+    .topic-label:hover::before {
+        left: 100%;
+    }
+    [data-theme="dark"] .topic-label {
+        background: rgba(30,41,59,0.5);
+        border-color: rgba(96,165,250,0.2);
+    }
+    [data-theme="dark"] .topic-label:hover {
+        border-color: rgba(96,165,250,0.4);
+    }
+    .topic-label.selected { 
+        background: linear-gradient(135deg, #0d6efd, #0056b3) !important;
+        color: white !important; 
+        border-color: transparent !important;
+        box-shadow: 0 8px 25px rgba(13,110,253,0.4) !important;
+        transform: translateY(-2px);
+    }
+    .topic-label.selected::before {
+        display: none;
+    }
+    .btn-topic-control {
+        background: rgba(13,110,253,0.1);
+        border: 2px solid rgba(13,110,253,0.2);
+        color: var(--fg);
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    .btn-topic-control:hover {
+        background: rgba(13,110,253,0.2);
+        border-color: rgba(13,110,253,0.4);
+        transform: translateY(-2px);
+    }
+    [data-theme="dark"] .btn-topic-control {
+        background: rgba(96,165,250,0.1);
+        border-color: rgba(96,165,250,0.2);
+    }
+    [data-theme="dark"] .btn-topic-control:hover {
+        background: rgba(96,165,250,0.2);
+        border-color: rgba(96,165,250,0.4);
+    }
+    .btn-start-quiz {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.125rem;
+        padding: 1rem 2rem;
+        border-radius: 14px;
+        box-shadow: 0 10px 30px rgba(102,126,234,0.4);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .btn-start-quiz::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    .btn-start-quiz:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(102,126,234,0.5);
+    }
+    .btn-start-quiz:hover::before {
+        left: 100%;
+    }
+    .input-premium {
+        border: 2px solid rgba(13,110,253,0.2);
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    .input-premium:focus {
+        border-color: rgba(13,110,253,0.5);
+        box-shadow: 0 8px 20px rgba(13,110,253,0.15);
+        background: rgba(255,255,255,0.9);
+    }
+    [data-theme="dark"] .input-premium {
+        background: rgba(30,41,59,0.7);
+        border-color: rgba(96,165,250,0.2);
+    }
+    [data-theme="dark"] .input-premium:focus {
+        background: rgba(30,41,59,0.9);
+        border-color: rgba(96,165,250,0.5);
+    }
+    .label-premium {
+        font-weight: 600;
+        color: var(--fg);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    @media (max-width: 768px) {
+        .home-hero { min-height: auto; padding: 2rem 0; }
+        .hero-title { font-size: 2.25rem; }
+        .hero-subtitle { font-size: 1.1rem; }
+        .features-grid { display: none; }
+        .home-hero::before,
+        .home-hero::after {
+            width: 300px;
+            height: 300px;
+            animation: none;
+        }
+    }
 </style>
-<section class="py-3 py-md-5 position-relative">
-    <div class="floating-orb"></div>
+<section class="home-hero">
     <div class="container position-relative">
-        <div class="row align-items-center g-3 g-md-4">
-            <div class="col-12 col-lg-6 order-2 order-lg-1">
-                <h1 class="display-5 fw-bold mb-3 hero-heading">Test your knowledge, one question at a time</h1>
+        <div class="row align-items-center g-4">
+            <div class="col-12 col-lg-6 order-1 order-lg-1 hero-content">
+                <h1 class="hero-title">Test Your Knowledge, One Quiz at a Time</h1>
                 {% if current_user.is_authenticated %}
-                    <p class="lead text-muted">Welcome back, {{ current_user.username }}. Pick topics and dive in!</p>
+                    <p class="hero-subtitle">Welcome back, <span class="fw-bold">{{ current_user.username }}</span>! Ready to challenge yourself?</p>
                 {% else %}
-                    <p class="lead text-muted">Enter your name, pick a few topics, and start your quiz journey.</p>
+                    <p class="hero-subtitle">Enter your name, select your favorite topics, and embark on an exciting learning adventure.</p>
                 {% endif %}
-                <ul class="list-unstyled small text-muted mb-4 features-list">
-                    <li>Fresh questions from multiple categories</li>
-                    <li>Progress saved to your dashboard when logged in</li>
-                    <li>Responsive dark/light theme for comfortable play</li>
-                </ul>
+                <div class="features-grid d-none d-lg-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🎯</div>
+                        <p class="feature-text">Curated questions from diverse categories</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📊</div>
+                        <p class="feature-text">Track your progress with detailed analytics</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🌓</div>
+                        <p class="feature-text">Comfortable experience with dark/light themes</p>
+                    </div>
+                </div>
             </div>
-            <div class="col-12 col-lg-6 order-1 order-lg-2">
-                <div class="card border-0 shadow-soft">
-                    <div class="card-body p-4">
+            <div class="col-12 col-lg-6 order-2 order-lg-2">
+                <div class="quiz-card">
+                    <div class="quiz-card-header">
+                        <h3 class="card-title-gradient">
+                            <i class="bi bi-rocket-takeoff me-2"></i>Start Your Quiz
+                        </h3>
+                    </div>
+                    <div class="p-3 p-md-4">
                         <form action="{{ url_for('quiz.quiz') }}" method="POST">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                             {% if not current_user.is_authenticated %}
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Your Name</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
+                            <div class="mb-4">
+                                <label for="username" class="label-premium">
+                                    <i class="bi bi-person me-1"></i>Your Name
+                                </label>
+                                <input type="text" class="form-control input-premium" id="username" name="username" placeholder="Enter your name" required>
                             </div>
                             {% endif %}
-                            <div class="mb-3">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <label class="form-label m-0">Select Topics</label>
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <label class="label-premium m-0">
+                                        <i class="bi bi-collection me-1"></i>Select Topics
+                                    </label>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <button class="btn btn-outline-secondary" type="button" id="btn-select-all">All</button>
-                                        <button class="btn btn-outline-secondary" type="button" id="btn-clear">Clear</button>
+                                        <button class="btn btn-topic-control" type="button" id="btn-select-all">
+                                            <i class="bi bi-check-all me-1"></i>All
+                                        </button>
+                                        <button class="btn btn-topic-control" type="button" id="btn-clear">
+                                            <i class="bi bi-x-lg me-1"></i>Clear
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="row row-cols-1 row-cols-md-2 g-3">
                                     {% for topic in topics %}
                                     <div class="col">
                                         <input class="btn-check" type="checkbox" autocomplete="off" name="topics" id="t{{ loop.index }}" value="{{ topic }}">
-                                        <label class="btn w-100 text-start border topic-label" for="t{{ loop.index }}">{{ topic }}</label>
+                                        <label class="btn w-100 text-start topic-label" for="t{{ loop.index }}">{{ topic }}</label>
                                     </div>
                                     {% endfor %}
                                 </div>
                             </div>
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-lg">Start Quiz 🚀</button>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-start-quiz">
+                                    <i class="bi bi-lightning-charge me-2"></i>Start Quiz
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -76,8 +358,8 @@
             checks().forEach(cb=>{
                 const label = document.querySelector(`label[for="${cb.id}"]`);
                 if(!label) return;
-                if(cb.checked){ label.classList.add('btn-primary','text-white'); label.classList.remove('border'); }
-                else { label.classList.remove('btn-primary','text-white'); label.classList.add('border'); }
+                if(cb.checked){ label.classList.add('selected'); label.classList.remove('border'); }
+                else { label.classList.remove('selected'); label.classList.add('border'); }
             });
         }
         checks().forEach(cb=> cb.addEventListener('change', sync));

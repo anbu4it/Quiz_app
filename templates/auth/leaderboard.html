@@ -4,7 +4,308 @@
 
 {% block content %}
 <div class="container py-4 leaderboard-page">
-    <h2 class="text-center mb-4">🏆 Quiz Leaderboards</h2>
+<style>
+    .leaderboard-page {
+        position: relative;
+        min-height: 80vh;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    .leaderboard-page::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(13,110,253,0.15), transparent);
+        border-radius: 50%;
+        filter: blur(60px);
+        pointer-events: none;
+        z-index: -1;
+    }
+    .leaderboard-page::after {
+        content: '';
+        position: absolute;
+        bottom: -50px;
+        left: -50px;
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, rgba(139,92,246,0.12), transparent);
+        border-radius: 50%;
+        filter: blur(50px);
+        pointer-events: none;
+        z-index: -1;
+    }
+    .glass-card {
+        background: rgba(255,255,255,0.75);
+        border-radius: 20px;
+        box-shadow: 0 12px 40px rgba(13,110,253,0.08), 0 2px 8px rgba(139,92,246,0.05);
+        backdrop-filter: blur(16px);
+        border: 1.5px solid rgba(200,200,255,0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover {
+        box-shadow: 0 16px 50px rgba(13,110,253,0.12), 0 4px 12px rgba(139,92,246,0.08);
+        transform: translateY(-2px);
+    }
+    [data-theme="dark"] .glass-card {
+        background: rgba(30,41,59,0.85);
+        border: 1.5px solid rgba(96,165,250,0.2);
+    }
+    .leaderboard-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+    .leaderboard-gradient {
+        background: linear-gradient(135deg, #0d6efd 0%, #8b5cf6 50%, #d946ef 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        font-weight: 900;
+        font-size: 2.5rem;
+        letter-spacing: -0.03em;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 4px 12px rgba(13,110,253,0.15);
+    }
+    .leaderboard-subtitle {
+        color: var(--muted);
+        font-size: 1.1rem;
+        font-weight: 400;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    .trophy-icon {
+        font-size: 3rem;
+        display: inline-block;
+        animation: float 6s ease-in-out infinite;
+    }
+    @media (max-width: 768px) {
+        .trophy-icon {
+            animation: none !important;
+        }
+    }
+    .rank-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    .rank-1 {
+        background: linear-gradient(135deg, #ffd700, #ffed4e);
+        color: #000;
+        box-shadow: 0 4px 12px rgba(255,215,0,0.4);
+    }
+    .rank-2 {
+        background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+        color: #333;
+        box-shadow: 0 4px 12px rgba(192,192,192,0.4);
+    }
+    .rank-3 {
+        background: linear-gradient(135deg, #cd7f32, #e09b5c);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(205,127,50,0.4);
+    }
+    .rank-other {
+        background: linear-gradient(135deg, #e9ecef, #f8f9fa);
+        color: #6c757d;
+        border: 2px solid #dee2e6;
+    }
+    [data-theme="dark"] .rank-other {
+        background: linear-gradient(135deg, #334155, #475569);
+        color: #cbd5e1;
+        border: 2px solid #475569;
+    }
+    .avatar-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+    .avatar-img, .avatar {
+        border: 3px solid #fff;
+        box-shadow: 0 3px 10px rgba(13,110,253,0.15);
+        transition: all 0.3s ease;
+    }
+    .avatar-img:hover, .avatar:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(13,110,253,0.25);
+    }
+    [data-theme="dark"] .avatar-img, [data-theme="dark"] .avatar {
+        border: 3px solid #1e293b;
+        box-shadow: 0 3px 10px rgba(96,165,250,0.2);
+    }
+    .score-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .score-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .score-gold {
+        background: linear-gradient(135deg, #10b981, #34d399);
+        color: #fff;
+    }
+    .score-silver {
+        background: linear-gradient(135deg, #6366f1, #818cf8);
+        color: #fff;
+    }
+    .score-bronze {
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        color: #fff;
+    }
+    .score-default {
+        background: linear-gradient(135deg, #64748b, #94a3b8);
+        color: #fff;
+    }
+    .table-hover tbody tr {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+    .table-hover tbody tr:hover {
+        background: linear-gradient(90deg, rgba(13,110,253,0.05), rgba(139,92,246,0.05));
+        transform: translateX(4px);
+        box-shadow: -4px 0 0 0 #0d6efd;
+    }
+    [data-theme="dark"] .table-hover tbody tr:hover {
+        background: linear-gradient(90deg, rgba(96,165,250,0.08), rgba(167,139,250,0.08));
+        box-shadow: -4px 0 0 0 #60a5fa;
+    }
+    .top-performer-row {
+        position: relative;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 12px;
+    }
+    .top-1-row {
+        background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,237,78,0.05));
+        border-left: 4px solid #ffd700;
+    }
+    .top-2-row {
+        background: linear-gradient(135deg, rgba(192,192,192,0.08), rgba(232,232,232,0.04));
+        border-left: 4px solid #c0c0c0;
+    }
+    .top-3-row {
+        background: linear-gradient(135deg, rgba(205,127,50,0.08), rgba(224,155,92,0.04));
+        border-left: 4px solid #cd7f32;
+    }
+    [data-theme="dark"] .top-1-row {
+        background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,237,78,0.08));
+    }
+    [data-theme="dark"] .top-2-row {
+        background: linear-gradient(135deg, rgba(192,192,192,0.12), rgba(232,232,232,0.06));
+    }
+    [data-theme="dark"] .top-3-row {
+        background: linear-gradient(135deg, rgba(205,127,50,0.12), rgba(224,155,92,0.06));
+    }
+    .table-primary th {
+        font-weight: 700;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 1rem;
+        background: linear-gradient(135deg, #0d6efd, #8b5cf6);
+        color: #fff;
+    }
+    .username-cell {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .username-name {
+        font-weight: 600;
+        font-size: 1.05rem;
+        color: var(--fg);
+    }
+    .username-meta {
+        font-size: 0.85rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .stat-icon {
+        opacity: 0.7;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--muted);
+    }
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.3;
+    }
+    .nav-tabs {
+        border: none;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    .nav-tabs .nav-link {
+        border: none;
+        border-radius: 12px;
+        padding: 0.875rem 1.5rem;
+        font-weight: 600;
+        color: var(--fg);
+        background: rgba(13,110,253,0.05);
+        transition: all 0.3s ease;
+    }
+    .nav-tabs .nav-link:hover {
+        background: rgba(13,110,253,0.1);
+        transform: translateY(-2px);
+    }
+    .nav-tabs .nav-link.active {
+        background: linear-gradient(135deg, #0d6efd, #8b5cf6);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(13,110,253,0.3);
+    }
+    [data-theme="dark"] .nav-tabs .nav-link {
+        background: rgba(96,165,250,0.08);
+    }
+    [data-theme="dark"] .nav-tabs .nav-link:hover {
+        background: rgba(96,165,250,0.15);
+    }
+    @media (max-width: 768px) {
+        .leaderboard-page::before {
+            right: -100px;
+            width: 200px;
+            height: 200px;
+        }
+        .leaderboard-page::after {
+            left: -100px;
+            width: 180px;
+            height: 180px;
+        }
+        .glass-card { border-radius: 16px; padding: 1rem; }
+        .leaderboard-gradient { font-size: 1.75rem; }
+        .trophy-icon { font-size: 2rem; }
+        .rank-badge { width: 36px; height: 36px; font-size: 0.9rem; }
+        .table-responsive {
+            margin-left: -1rem;
+            margin-right: -1rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    }
+</style>
+    <div class="leaderboard-header">
+        <div class="trophy-icon">🏆</div>
+        <h1 class="leaderboard-gradient">Quiz Champions</h1>
+        <p class="leaderboard-subtitle">Compete. Achieve. Celebrate.</p>
+    </div>
     
     <!-- Navigation tabs -->
     <ul class="nav nav-tabs mb-4" id="leaderboardTabs" role="tablist">
@@ -31,7 +332,7 @@
         <!-- Global Rankings Tab -->
         <div class="tab-pane fade show active" id="global" role="tabpanel" aria-labelledby="global-tab">
             <div class="card shadow">
-                <div class="card-body">
+                <div class="card-body glass-card">
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead class="table-primary">
@@ -43,21 +344,32 @@
                             </thead>
                             <tbody>
                                 {% for performer in top_performers %}
-                                <tr class="{% if loop.index == 1 %}top-1{% elif loop.index == 2 %}top-2{% elif loop.index == 3 %}top-3{% endif %}">
-                                    <td class="fw-bold">{{ loop.index }}</td>
+                                <tr class="{% if loop.index == 1 %}top-1-row{% elif loop.index == 2 %}top-2-row{% elif loop.index == 3 %}top-3-row{% endif %}">
+                                    <td>
+                                        <div class="rank-badge {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% else %}rank-other{% endif %}">
+                                            {% if loop.index <= 3 %}<i class="bi bi-trophy-fill"></i>{% else %}{{ loop.index }}{% endif %}
+                                        </div>
+                                    </td>
                                     <td class="username-cell">
-                                        {% if performer.avatar %}
-                                            <img src="{{ performer.avatar|avatar_url(performer.username|urlencode) }}" alt="{{ performer.username }}'s avatar" class="avatar-img" loading="lazy" width="44" height="44" />
-                                        {% else %}
-                                            <span class="avatar">{{ performer.username[0]|upper }}</span>
-                                        {% endif %}
+                                        <div class="avatar-wrapper">
+                                            {% if performer.avatar %}
+                                                <img src="{{ performer.avatar|avatar_url(performer.username|urlencode) }}" alt="{{ performer.username }}'s avatar" class="avatar-img" loading="lazy" width="48" height="48" />
+                                            {% else %}
+                                                <span class="avatar">{{ performer.username[0]|upper }}</span>
+                                            {% endif %}
+                                        </div>
                                         <div>
                                             <div class="username-name">{{ performer.username }}</div>
-                                            <div class="username-meta text-muted small">{{ performer.total_quizzes }} quizzes</div>
+                                            <div class="username-meta">
+                                                <i class="bi bi-bar-chart stat-icon"></i>
+                                                <span>{{ performer.total_quizzes }} quiz{{ 'zes' if performer.total_quizzes != 1 else '' }}</span>
+                                            </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="score-badge">{{ "%.2f"|format(performer.avg_percentage) }}%</span>
+                                        <span class="score-badge {% if loop.index == 1 %}score-gold{% elif loop.index == 2 %}score-silver{% elif loop.index == 3 %}score-bronze{% else %}score-default{% endif %}">
+                                            {{ "%.1f"|format(performer.avg_percentage) }}%
+                                        </span>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -73,7 +385,7 @@
         <div class="tab-pane fade" id="{{ topic|replace(' ', '-')|lower }}" 
              role="tabpanel" aria-labelledby="{{ topic|replace(' ', '-')|lower }}-tab">
             <div class="card shadow">
-                <div class="card-body">
+                <div class="card-body glass-card">
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead class="table-primary">
@@ -87,35 +399,47 @@
                             <tbody>
                                 {% if scores %}
                                     {% for score in scores %}
-                                    <tr class="{% if loop.index == 1 %}top-1{% elif loop.index == 2 %}top-2{% elif loop.index == 3 %}top-3{% endif %}">
-                                        <td class="fw-bold">{{ loop.index }}</td>
+                                    <tr class="{% if loop.index == 1 %}top-1-row{% elif loop.index == 2 %}top-2-row{% elif loop.index == 3 %}top-3-row{% endif %}">
+                                        <td>
+                                            <div class="rank-badge {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% else %}rank-other{% endif %}">
+                                                {% if loop.index <= 3 %}<i class="bi bi-trophy-fill"></i>{% else %}{{ loop.index }}{% endif %}
+                                            </div>
+                                        </td>
                                         <td class="username-cell">
-                                            {% if score.avatar %}
-                                                <img src="{{ score.avatar|avatar_url(score.username|urlencode) }}" alt="{{ score.username }}'s avatar" class="avatar-img" loading="lazy" width="44" height="44" />
-                                            {% else %}
-                                                <span class="avatar">{{ score.username[0]|upper }}</span>
-                                            {% endif %}
+                                            <div class="avatar-wrapper">
+                                                {% if score.avatar %}
+                                                    <img src="{{ score.avatar|avatar_url(score.username|urlencode) }}" alt="{{ score.username }}'s avatar" class="avatar-img" loading="lazy" width="48" height="48" />
+                                                {% else %}
+                                                    <span class="avatar">{{ score.username[0]|upper }}</span>
+                                                {% endif %}
+                                            </div>
                                             <div>
                                                 <div class="username-name">{{ score.username }}</div>
-                                                <div class="username-meta text-muted small">{{ score.attempts }} attempts</div>
+                                                <div class="username-meta">
+                                                    <i class="bi bi-arrow-repeat stat-icon"></i>
+                                                    <span>{{ score.attempts }} attempt{{ 's' if score.attempts != 1 else '' }}</span>
+                                                </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="score-badge">{{ score.best_score }}%</span>
+                                            <span class="score-badge {% if loop.index == 1 %}score-gold{% elif loop.index == 2 %}score-silver{% elif loop.index == 3 %}score-bronze{% else %}score-default{% endif %}">
+                                                {{ score.best_score }}%
+                                            </span>
                                         </td>
                                         <td>
-                                            <span class="badge bg-light text-dark">{{ score.avg_score }}%</span>
+                                            <span class="score-badge score-default">{{ score.avg_score }}%</span>
                                         </td>
                                     </tr>
                                     {% endfor %}
                                 {% else %}
                                     <tr>
-                                        <td colspan="5" class="text-center py-4">
-                                            <div class="text-muted">
-                                                <i class="fas fa-trophy fa-2x mb-3"></i>
-                                                <p>Be the first to take this quiz!</p>
-                                                <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-sm">
-                                                    Start Quiz
+                                        <td colspan="4" class="empty-state">
+                                            <i class="bi bi-inbox"></i>
+                                            <p class="mb-2 fw-semibold">No scores available for this topic yet.</p>
+                                            <small class="text-muted">Be the first to take the quiz!</small>
+                                            <div class="mt-3">
+                                                <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                                                    <i class="bi bi-play-fill me-2"></i>Start Quiz
                                                 </a>
                                             </div>
                                         </td>
@@ -131,6 +455,14 @@
     </div>
 </div>
 {% endblock %}
+<script>
+    // Hide leaderboard skeletons after hydration
+    document.addEventListener('DOMContentLoaded', function(){
+        document.querySelectorAll('.leaderboard-skeleton').forEach(el => {
+            setTimeout(() => { el.style.display = 'none'; }, 180);
+        });
+    });
+</script>
 }
 
 /* Small visual tweaks for the horizontal scrollbar */

@@ -39,7 +39,10 @@ There are two ways to clear your production database on Render:
 ### Clear Database:
 Visit this URL in your browser:
 ```
-https://your-app-name.onrender.com/admin/clear-database?token=YOUR_SECRET_TOKEN
+
+https://quiz-app-6i6h.onrender.com/admin/clear-database?token=clear-brainrush-2025-xyz789
+
+
 ```
 
 Replace:

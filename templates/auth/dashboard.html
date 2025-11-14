@@ -3,16 +3,103 @@
 {% block title %}My Dashboard | BrainRush{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-4 dashboard-page">
+<style>
+    .dashboard-page {
+        position: relative;
+        overflow-x: hidden;
+    }
+    .welcome-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 15px 45px rgba(102,126,234,0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    .welcome-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        animation: floatSlow 20s ease-in-out infinite;
+    }
+    .welcome-card::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 50%;
+        animation: floatSlow 15s ease-in-out infinite reverse;
+    }
+    @keyframes floatSlow {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(-20px, -20px); }
+    }
+    .welcome-card .card-body {
+        position: relative;
+        z-index: 1;
+        padding: 2.5rem;
+    }
+    .welcome-title {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0.75rem;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .welcome-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        margin-bottom: 1.5rem;
+    }
+    .btn-welcome {
+        background: rgba(255,255,255,0.25);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255,255,255,0.3);
+        color: #fff;
+        font-weight: 600;
+        padding: 0.625rem 1.5rem;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    .btn-welcome:hover {
+        background: rgba(255,255,255,0.35);
+        border-color: rgba(255,255,255,0.5);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    @media (max-width: 768px) {
+        .welcome-card::before,
+        .welcome-card::after {
+            animation: none;
+        }
+        .welcome-title { font-size: 1.5rem; }
+        .welcome-subtitle { font-size: 1rem; }
+        .welcome-card .card-body { padding: 1.5rem; }
+    }
+</style>
     <!-- Welcome Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-primary text-white shadow-lg">
+            <div class="card welcome-card text-white shadow-lg">
                 <div class="card-body">
-                    <h2 class="card-title">Welcome, {{ current_user.username }}! 👋</h2>
-                    <p class="card-text">Track your progress and improve your quiz performance</p>
-                    <div class="mt-3">
-                        <a href="{{ url_for('auth.profile') }}" class="btn btn-light btn-sm">Edit Profile</a>
+                    <h2 class="welcome-title">Welcome back, {{ current_user.username }}! 👋</h2>
+                    <p class="welcome-subtitle">Track your progress and achieve greatness with every quiz</p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ url_for('auth.profile') }}" class="btn btn-welcome">
+                            <i class="bi bi-person-circle me-2"></i>Edit Profile
+                        </a>
+                        <a href="{{ url_for('main.index') }}" class="btn btn-welcome">
+                            <i class="bi bi-play-circle me-2"></i>Take Quiz
+                        </a>
                     </div>
                 </div>
             </div>
@@ -20,66 +107,288 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm border-0 bg-light">
+<style>
+    .stat-card {
+        background: rgba(255,255,255,0.75);
+        backdrop-filter: blur(16px);
+        border: 1.5px solid rgba(200,200,255,0.2);
+        border-radius: 18px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255,255,255,0.3), transparent);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 50px rgba(13,110,253,0.15);
+        border-color: rgba(13,110,253,0.3);
+    }
+    [data-theme="dark"] .stat-card {
+        background: rgba(30,41,59,0.85);
+        border: 1.5px solid rgba(96,165,250,0.2);
+    }
+    [data-theme="dark"] .stat-card:hover {
+        box-shadow: 0 20px 50px rgba(96,165,250,0.2);
+        border-color: rgba(96,165,250,0.3);
+    }
+    .stat-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2.5rem;
+        position: relative;
+        z-index: 1;
+    }
+    .stat-icon-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        box-shadow: 0 10px 30px rgba(102,126,234,0.3);
+    }
+    .stat-icon-success {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        box-shadow: 0 10px 30px rgba(17,153,142,0.3);
+    }
+    .stat-icon-warning {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        box-shadow: 0 10px 30px rgba(240,147,251,0.3);
+    }
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 900;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    .stat-card-primary .stat-number {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+    }
+    .stat-card-success .stat-number {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        -webkit-background-clip: text;
+        background-clip: text;
+    }
+    .stat-card-warning .stat-number {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        -webkit-background-clip: text;
+        background-clip: text;
+    }
+    .stat-label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--fg);
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .stat-description {
+        font-size: 0.875rem;
+        color: var(--muted);
+    }
+    @media (max-width: 768px) {
+        .stat-icon-wrapper { width: 60px; height: 60px; font-size: 2rem; margin-bottom: 1rem; }
+        .stat-number { font-size: 2.25rem; }
+        .stat-label { font-size: 0.875rem; }
+    }
+</style>
+    <div class="row g-3 g-md-4 mb-4 dashboard">
+        <div class="col-12 col-sm-6 col-md-4">
+            <div class="card stat-card stat-card-primary h-100 shadow-sm border-0">
                 <div class="card-body text-center">
-                    <div class="display-4 text-primary mb-2">
-                        <i class="fas fa-tasks"></i>
+                    <div class="stat-icon-wrapper stat-icon-primary">
+                        <i class="bi bi-list-check text-white"></i>
                     </div>
-                    <h5 class="card-title">Total Quizzes</h5>
-                    <h2 class="display-6 fw-bold text-primary">{{ scores|length }}</h2>
-                    <p class="text-muted">Quizzes completed</p>
+                    <div class="stat-number">{{ scores|length }}</div>
+                    <h5 class="stat-label">Total Quizzes</h5>
+                    <p class="stat-description">Quizzes completed</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm border-0 bg-light">
+        <div class="col-12 col-sm-6 col-md-4">
+            <div class="card stat-card stat-card-success h-100 shadow-sm border-0">
                 <div class="card-body text-center">
-                    <div class="display-4 text-success mb-2">
-                        <i class="fas fa-chart-line"></i>
+                    <div class="stat-icon-wrapper stat-icon-success">
+                        <i class="bi bi-graph-up-arrow text-white"></i>
                     </div>
-                    <h5 class="card-title">Average Score</h5>
-                    <h2 class="display-6 fw-bold text-success">
+                    <div class="stat-number">
                         {% if scores|length > 0 %}
-                            {{ "%.1f"|format(scores|sum(attribute='score') / scores|sum(attribute='max_score') * 100) }}%
+                            {{ "%.0f"|format(scores|sum(attribute='score') / scores|sum(attribute='max_score') * 100) }}%
                         {% else %}
                             0%
                         {% endif %}
-                    </h2>
-                    <p class="text-muted">Overall performance</p>
+                    </div>
+                    <h5 class="stat-label">Average Score</h5>
+                    <p class="stat-description">Overall performance</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm border-0 bg-light">
+        <div class="col-12 col-sm-12 col-md-4">
+            <div class="card stat-card stat-card-warning h-100 shadow-sm border-0">
                 <div class="card-body text-center">
-                    <div class="display-4 text-warning mb-2">
-                        <i class="fas fa-trophy"></i>
+                    <div class="stat-icon-wrapper stat-icon-warning">
+                        <i class="bi bi-trophy-fill text-white"></i>
                     </div>
-                    <h5 class="card-title">Best Score</h5>
-                    <h2 class="display-6 fw-bold text-warning">
+                    <div class="stat-number">
                         {% if scores|length > 0 %}
-                            {% set best = (scores|map(attribute='score')|max / scores|map(attribute='max_score')|max * 100)|round(1) %}
-                            {{ best }}%
+                            {% set best = (scores|map(attribute='score')|max / scores|map(attribute='max_score')|max * 100)|round(0) %}
+                            {{ best|int }}%
                         {% else %}
                             0%
                         {% endif %}
-                    </h2>
-                    <p class="text-muted">Highest achievement</p>
+                    </div>
+                    <h5 class="stat-label">Best Score</h5>
+                    <p class="stat-description">Highest achievement</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Recent Activity -->
+<style>
+    .activity-card {
+        background: rgba(255,255,255,0.75);
+        backdrop-filter: blur(16px);
+        border: 1.5px solid rgba(200,200,255,0.2);
+        border-radius: 18px;
+        box-shadow: 0 12px 40px rgba(13,110,253,0.08);
+    }
+    [data-theme="dark"] .activity-card {
+        background: rgba(30,41,59,0.85);
+        border: 1.5px solid rgba(96,165,250,0.2);
+    }
+    .activity-header {
+        background: transparent;
+        border-bottom: 2px solid rgba(13,110,253,0.1);
+        padding: 1.5rem;
+    }
+    [data-theme="dark"] .activity-header {
+        border-bottom: 2px solid rgba(96,165,250,0.15);
+    }
+    .activity-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #0d6efd, #8b5cf6);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 0;
+    }
+    .quiz-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    .quiz-icon .badge {
+        font-size: 1.5rem;
+        padding: 0;
+        background: transparent !important;
+    }
+    .activity-card tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid rgba(13,110,253,0.08);
+    }
+    .activity-card tbody tr:hover {
+        background: rgba(13,110,253,0.04);
+        transform: translateX(4px);
+    }
+    [data-theme="dark"] .activity-card tbody tr {
+        border-bottom: 1px solid rgba(96,165,250,0.1);
+    }
+    [data-theme="dark"] .activity-card tbody tr:hover {
+        background: rgba(96,165,250,0.08);
+    }
+    .quiz-title {
+        font-weight: 600;
+        color: var(--fg);
+    }
+    .score-badge {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        padding: 0.375rem 0.875rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px rgba(102,126,234,0.25);
+    }
+    .performance-bar {
+        height: 10px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: rgba(13,110,253,0.15);
+        display: flex;
+        width: 100%;
+    }
+    [data-theme="dark"] .performance-bar {
+        background: rgba(96,165,250,0.15);
+    }
+    .performance-bar .progress-bar {
+        border-radius: 10px;
+        transition: width 0.6s ease;
+        height: 100%;
+    }
+    .performance-bar .bg-success {
+        background: linear-gradient(90deg, #11998e, #38ef7d) !important;
+    }
+    .performance-bar .bg-warning {
+        background: linear-gradient(90deg, #f093fb, #f5576c) !important;
+    }
+    .performance-bar .bg-danger {
+        background: linear-gradient(90deg, #ff6b6b, #ee5a6f) !important;
+    }
+    .empty-state-dashboard {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    .empty-state-dashboard i {
+        font-size: 4rem;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 1.5rem;
+        display: inline-block;
+    }
+    @media (max-width: 768px) {
+        .activity-header { padding: 1rem; }
+        .activity-title { font-size: 1.25rem; }
+        .quiz-icon { width: 40px; height: 40px; font-size: 1.25rem; }
+    }
+</style>
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-0">
-                    <h4 class="mb-0">Recent Activity</h4>
+            <div class="card activity-card shadow-sm border-0">
+                <div class="card-header activity-header">
+                    <h4 class="activity-title">
+                        <i class="bi bi-clock-history me-2"></i>Recent Activity
+                    </h4>
                 </div>
                 <div class="card-body">
+                    <div class="dashboard-skeleton skeleton mb-3" style="height: 24px; width: 80%; margin: 0 auto;"></div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
@@ -94,62 +403,66 @@
                                 {% for score in scores|sort(attribute='date_taken', reverse=true) %}
                                 <tr>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="quiz-icon me-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="quiz-icon">
                                                 {% set quiz_lower = score.quiz_name|lower %}
                                                 {% if 'computer' in quiz_lower %}
-                                                    <span class="badge bg-primary">💻</span>
+                                                    <span class="badge">💻</span>
                                                 {% elif 'science' in quiz_lower or 'nature' in quiz_lower %}
-                                                    <span class="badge bg-success">🔬</span>
+                                                    <span class="badge">🔬</span>
                                                 {% elif 'math' in quiz_lower %}
-                                                    <span class="badge bg-info">🔢</span>
+                                                    <span class="badge">🔢</span>
                                                 {% elif 'history' in quiz_lower %}
-                                                    <span class="badge bg-warning">📜</span>
+                                                    <span class="badge">📜</span>
                                                 {% elif 'geography' in quiz_lower %}
-                                                    <span class="badge bg-info">🌍</span>
+                                                    <span class="badge">🌍</span>
                                                 {% elif 'sport' in quiz_lower %}
-                                                    <span class="badge bg-success">⚽</span>
-
+                                                    <span class="badge">⚽</span>
                                                 {% elif 'art' in quiz_lower %}
-                                                    <span class="badge bg-danger">🎨</span>
+                                                    <span class="badge">🎨</span>
                                                 {% elif 'general knowledge' in quiz_lower %}
-                                                    <span class="badge bg-primary">🧠</span>
+                                                    <span class="badge">🧠</span>
                                                 {% elif 'celebrit' in quiz_lower %}
-                                                    <span class="badge bg-warning">⭐</span>
+                                                    <span class="badge">⭐</span>
                                                 {% else %}
-                                                    <span class="badge bg-secondary">📝</span>
+                                                    <span class="badge">📝</span>
                                                 {% endif %}
                                             </div>
                                             <div>
-                                                <h6 class="mb-0">{{ score.quiz_name }}</h6>
+                                                <h6 class="quiz-title mb-0">{{ score.quiz_name }}</h6>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{{ score.score }}/{{ score.max_score }}</td>
+                                    <td>
+                                        <span class="score-badge">{{ score.score }}/{{ score.max_score }}</span>
+                                    </td>
                                     <td>
                                         {% set percentage = (score.score / score.max_score * 100)|round(1) %}
-                                        <div class="d-flex align-items-center">
-                                            <div class="progress flex-grow-1" style="height: 8px;">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="performance-bar flex-grow-1">
                                                 <div class="progress-bar {% if percentage >= 80 %}bg-success{% elif percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
                                                      role="progressbar" 
                                                      style="width: {{ percentage }}%">
                                                 </div>
                                             </div>
-                                            <span class="ms-2 text-muted small">{{ percentage }}%</span>
+                                            <span class="fw-semibold small">{{ percentage|int }}%</span>
                                         </div>
                                     </td>
-                                    <td class="text-end text-muted">
-                                        {{ score.date_taken.strftime('%b %d, %Y') }}
+                                    <td class="text-end">
+                                        <span class="text-muted small">
+                                            <i class="bi bi-calendar3 me-1"></i>{{ score.date_taken.strftime('%b %d, %Y') }}
+                                        </span>
                                     </td>
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="4" class="text-center py-4">
-                                        <div class="text-muted">
-                                            <i class="fas fa-inbox fa-2x mb-3"></i>
-                                            <p>No quizzes taken yet. Start your learning journey!</p>
-                                            <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-sm">
-                                                Take a Quiz
+                                    <td colspan="4">
+                                        <div class="empty-state-dashboard">
+                                            <i class="bi bi-inbox"></i>
+                                            <h5 class="mb-2">No Quizzes Yet</h5>
+                                            <p class="text-muted mb-3">Start your learning journey today!</p>
+                                            <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                                                <i class="bi bi-play-circle me-2"></i>Take Your First Quiz
                                             </a>
                                         </div>
                                     </td>
@@ -169,3 +482,11 @@
 
 
 {% endblock %}
+<script>
+    // Hide dashboard skeletons after hydration
+    document.addEventListener('DOMContentLoaded', function(){
+        document.querySelectorAll('.dashboard-skeleton').forEach(el => {
+            setTimeout(() => { el.style.display = 'none'; }, 180);
+        });
+    });
+</script>

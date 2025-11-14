@@ -3,6 +3,9 @@
 {% block content %}
 <div class="error-wrap">
     <div class="error-card error-500 shadow-soft">
+        <div class="error-skeleton skeleton mb-3" style="height: 38px; width: 30%; margin: 0 auto;"></div>
+        <div class="error-skeleton skeleton mb-2" style="height: 24px; width: 50%; margin: 0 auto;"></div>
+        <div class="error-skeleton skeleton mb-2" style="height: 18px; width: 70%; margin: 0 auto;"></div>
         <div class="error-code mb-3">500</div>
         <h2 class="fw-bold mb-2">Something went wrong</h2>
         <p class="text-muted mb-1">We hit an unexpected error. It’s not you — it’s us.</p>
@@ -13,4 +16,12 @@
         </div>
     </div>
 </div>
+<script>
+    // Hide error skeletons after hydration
+    document.addEventListener('DOMContentLoaded', function(){
+        document.querySelectorAll('.error-skeleton').forEach(el => {
+            setTimeout(() => { el.style.display = 'none'; }, 180);
+        });
+    });
+</script>
 {% endblock %}

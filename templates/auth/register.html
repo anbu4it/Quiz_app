@@ -3,42 +3,257 @@
 {% block title %}Register | BrainRush{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-9 col-lg-6">
-            <div class="card border-0 shadow-lg">
-                <div class="card-body p-4">
-                    <h3 class="fw-bold mb-3">Create your account</h3>
-                    <p class="text-muted mb-4">Fill in the form below to get started.</p>
-                    <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                        <div class="form-field">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" name="username" required autofocus value="{{ prefill_username or request.form.get('username','') }}" placeholder="Your username">
-                        </div>
-                        <div class="form-field">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" required value="{{ prefill_email or request.form.get('email','') }}" placeholder="you@example.com">
-                        </div>
-                        <div class="form-field">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required minlength="8" aria-describedby="pw-hint" placeholder="At least 8 characters">
-                            <small id="pw-hint" class="field-hint">Use at least 8 characters, including a letter and a number.</small>
-                        </div>
-                        <div class="form-field mb-3">
-                            <label for="confirm_password" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required minlength="8" placeholder="Re-enter your password">
-                        </div>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">Register</button>
-                        </div>
-                    </form>
-                    <p class="small text-muted mt-3">Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
-                </div>
+<style>
+    .auth-container {
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+        padding: 2rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .auth-container::before {
+        content: '';
+        position: absolute;
+        top: -150px;
+        right: -150px;
+        width: 450px;
+        height: 450px;
+        background: radial-gradient(circle, rgba(102,126,234,0.2), transparent);
+        border-radius: 50%;
+        filter: blur(80px);
+        pointer-events: none;
+        animation: floatOrb 8s ease-in-out infinite;
+    }
+    .auth-container::after {
+        content: '';
+        position: absolute;
+        bottom: -150px;
+        left: -150px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(118,75,162,0.15), transparent);
+        border-radius: 50%;
+        filter: blur(70px);
+        pointer-events: none;
+        animation: floatOrb 10s ease-in-out infinite reverse;
+    }
+    @keyframes floatOrb {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(-30px, 30px); }
+    }
+    .auth-card {
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(20px);
+        border: 2px solid rgba(200,200,255,0.3);
+        border-radius: 28px;
+        box-shadow: 0 25px 70px rgba(13,110,253,0.2);
+        max-width: 540px;
+        margin: 0 auto;
+        padding: 3rem;
+        animation: slideUp 0.6s ease;
+    }
+    [data-theme="dark"] .auth-card {
+        background: rgba(30,41,59,0.9);
+        border: 2px solid rgba(96,165,250,0.3);
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+    .auth-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 2rem;
+        box-shadow: 0 10px 30px rgba(102,126,234,0.3);
+    }
+    .auth-title {
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 0.5rem;
+    }
+    .auth-subtitle {
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    .form-group-auth {
+        margin-bottom: 1.5rem;
+    }
+    .label-auth {
+        font-weight: 600;
+        color: var(--fg);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+        display: block;
+    }
+    .input-auth {
+        border: 2px solid rgba(13,110,253,0.2);
+        border-radius: 14px;
+        padding: 0.95rem 1.25rem;
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        font-weight: 500;
+        width: 100%;
+        font-size: 1rem;
+    }
+    .input-auth:focus {
+        border-color: rgba(102,126,234,0.6);
+        box-shadow: 0 8px 25px rgba(13,110,253,0.2);
+        background: rgba(255,255,255,0.95);
+        outline: none;
+        transform: translateY(-1px);
+    }
+    .input-auth.is-valid {
+        border-color: rgba(17,153,142,0.6);
+        background: rgba(56,239,125,0.05);
+    }
+    [data-theme="dark"] .input-auth {
+        background: rgba(30,41,59,0.7);
+        border-color: rgba(96,165,250,0.2);
+        color: var(--fg);
+    }
+    [data-theme="dark"] .input-auth:focus {
+        background: rgba(30,41,59,0.9);
+        border-color: rgba(102,126,234,0.6);
+    }
+    [data-theme="dark"] .input-auth.is-valid {
+        border-color: rgba(17,153,142,0.6);
+        background: rgba(56,239,125,0.08);
+    }
+    .password-hint {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-top: 0.5rem;
+        display: block;
+        transition: all 0.3s ease;
+    }
+    .password-hint.valid {
+        color: #11998e;
+        font-weight: 600;
+    }
+    .btn-auth-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        color: #fff;
+        font-weight: 700;
+        padding: 1rem 2rem;
+        border-radius: 14px;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(102,126,234,0.35);
+        width: 100%;
+        font-size: 1.05rem;
+        margin-top: 1rem;
+    }
+    .btn-auth-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(102,126,234,0.45);
+        color: #fff;
+    }
+    .btn-auth-primary:active {
+        transform: translateY(-1px);
+    }
+    .auth-footer {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid rgba(13,110,253,0.1);
+    }
+    [data-theme="dark"] .auth-footer {
+        border-top-color: rgba(96,165,250,0.15);
+    }
+    .auth-footer-text {
+        color: var(--muted);
+        font-size: 0.95rem;
+    }
+    .auth-footer-link {
+        color: #667eea;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .auth-footer-link:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+    @media (max-width: 768px) {
+        .auth-container { min-height: auto; padding: 1.5rem 0; }
+        .auth-container::before,
+        .auth-container::after {
+            width: 300px;
+            height: 300px;
+        }
+        .auth-card { padding: 2rem 1.5rem; }
+        .auth-title { font-size: 1.75rem; }
+        .auth-icon { width: 60px; height: 60px; font-size: 1.75rem; }
+    }
+</style>
+
+<div class="container auth-container">
+    <div class="auth-card w-100">
+        <div class="auth-header">
+            <div class="auth-icon">
+                <i class="bi bi-person-plus"></i>
             </div>
+            <h2 class="auth-title">Create Account</h2>
+            <p class="auth-subtitle">Fill in the form below to get started</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            
+            <div class="form-group-auth">
+                <label for="username" class="label-auth">Username</label>
+                <input type="text" class="input-auth" id="username" name="username" required autofocus value="{{ prefill_username or request.form.get('username','') }}" placeholder="Choose a unique username">
+            </div>
+            
+            <div class="form-group-auth">
+                <label for="email" class="label-auth">Email</label>
+                <input type="email" class="input-auth" id="email" name="email" required value="{{ prefill_email or request.form.get('email','') }}" placeholder="you@example.com">
+            </div>
+            
+            <div class="form-group-auth">
+                <label for="password" class="label-auth">Password</label>
+                <input type="password" class="input-auth" id="password" name="password" required minlength="8" aria-describedby="pw-hint" placeholder="At least 8 characters">
+                <small id="pw-hint" class="password-hint">Use at least 8 characters, including a letter and a number</small>
+            </div>
+            
+            <div class="form-group-auth">
+                <label for="confirm_password" class="label-auth">Confirm Password</label>
+                <input type="password" class="input-auth" id="confirm_password" name="confirm_password" required minlength="8" placeholder="Re-enter your password">
+            </div>
+            
+            <button type="submit" class="btn-auth-primary">
+                <i class="bi bi-check-circle me-2"></i>Create Account
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <p class="auth-footer-text">
+                Already have an account? 
+                <a href="{{ url_for('auth.login') }}" class="auth-footer-link">Login here</a>
+            </p>
         </div>
     </div>
 </div>
+
+{% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const pw = document.getElementById('password');
@@ -50,16 +265,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const hasLetter = /[A-Za-z]/.test(v);
     const hasNum = /\d/.test(v);
     if(long && hasLetter && hasNum){
-      hint.textContent = 'Looking good.';
-      hint.style.color = '#16a34a';
+      hint.textContent = '✓ Looking good!';
+      hint.classList.add('valid');
       pw.classList.add('is-valid');
       pw.classList.remove('is-invalid');
     } else {
-      hint.textContent = 'Use at least 8 characters, including a letter and a number.';
-      hint.style.color = '';
+      hint.textContent = 'Use at least 8 characters, including a letter and a number';
+      hint.classList.remove('valid');
       pw.classList.remove('is-valid');
     }
   });
 });
 </script>
+{% endblock %}
 {% endblock %}

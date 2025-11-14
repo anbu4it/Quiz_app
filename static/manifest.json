@@ -1,12 +1,13 @@
 {
-  "name": "BrainRush",
+  "name": "BrainRush Quiz App",
   "short_name": "BrainRush",
   "description": "Test your knowledge with interactive quizzes",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#ffffff",
   "theme_color": "#0d6efd",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "icons": [
     {
       "src": "/static/images/icon-192.png",

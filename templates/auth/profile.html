@@ -4,63 +4,418 @@
 
 {% block content %}
 <style>
-    .profile-wrap{ max-width:860px; margin:1.5rem auto; }
-    .avatar-shell{ position:relative; width:110px; height:110px; }
-    .avatar-shell img, .avatar-shell .avatar-fallback{ width:100%; height:100%; border-radius:50%; object-fit:cover; }
-    .avatar-edit-btn{ position:absolute; bottom:-6px; right:-6px; }
-    .gradient-bar{ height:4px; background:linear-gradient(90deg,var(--brand),#8b5cf6); border-radius:999px; margin:-1rem -1rem 1.5rem; }
-    .info-grid{ display:grid; gap:1.25rem; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); }
-    .floating-hint{ font-size:.75rem; letter-spacing:.05em; text-transform:uppercase; font-weight:600; color:var(--muted); }
+    .profile-container {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        padding: 2rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .profile-container::before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(102,126,234,0.15), transparent);
+        border-radius: 50%;
+        filter: blur(80px);
+        pointer-events: none;
+        z-index: -1;
+    }
+    .profile-container::after {
+        content: '';
+        position: absolute;
+        bottom: -100px;
+        left: -100px;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(139,92,246,0.12), transparent);
+        border-radius: 50%;
+        filter: blur(70px);
+        pointer-events: none;
+        z-index: -1;
+    }
+    .profile-card {
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        border: 2px solid rgba(200,200,255,0.25);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(13,110,253,0.15);
+        max-width: 900px;
+        margin: 0 auto;
+        animation: slideUp 0.5s ease;
+    }
+    [data-theme="dark"] .profile-card {
+        background: rgba(30,41,59,0.9);
+        border: 2px solid rgba(96,165,250,0.25);
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .profile-header {
+        padding: 2rem;
+        border-bottom: 2px solid rgba(13,110,253,0.1);
+        text-align: center;
+    }
+    [data-theme="dark"] .profile-header {
+        border-bottom: 2px solid rgba(96,165,250,0.15);
+    }
+    .profile-title {
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 0.5rem;
+    }
+    .profile-subtitle {
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    .avatar-section {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(102,126,234,0.05), rgba(118,75,162,0.05));
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+    [data-theme="dark"] .avatar-section {
+        background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.08));
+    }
+    .avatar-wrapper {
+        position: relative;
+        width: 130px;
+        height: 130px;
+        flex-shrink: 0;
+    }
+    .avatar-image {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #fff;
+        box-shadow: 0 8px 25px rgba(13,110,253,0.2);
+    }
+    [data-theme="dark"] .avatar-image {
+        border-color: #1e293b;
+    }
+    .avatar-fallback {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        font-weight: 800;
+        font-size: 3rem;
+        border: 4px solid #fff;
+        box-shadow: 0 8px 25px rgba(102,126,234,0.3);
+    }
+    [data-theme="dark"] .avatar-fallback {
+        border-color: #1e293b;
+    }
+    .avatar-change-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: 3px solid #fff;
+        color: #fff;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+    }
+    .avatar-change-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(102,126,234,0.5);
+    }
+    [data-theme="dark"] .avatar-change-btn {
+        border-color: #1e293b;
+    }
+    .avatar-guidelines {
+        flex-grow: 1;
+    }
+    .guidelines-title {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 0.75rem;
+    }
+    .guidelines-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .guidelines-list li {
+        padding: 0.5rem 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .guidelines-list li::before {
+        content: '✓';
+        color: #667eea;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    .form-section {
+        padding: 0 2rem 2rem;
+    }
+    .input-group-premium {
+        margin-bottom: 1.5rem;
+    }
+    .label-premium {
+        font-weight: 600;
+        color: var(--fg);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+        display: block;
+    }
+    .input-premium {
+        border: 2px solid rgba(13,110,253,0.2);
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        font-weight: 500;
+        width: 100%;
+    }
+    .input-premium:focus {
+        border-color: rgba(102,126,234,0.5);
+        box-shadow: 0 8px 20px rgba(13,110,253,0.15);
+        background: rgba(255,255,255,0.9);
+        outline: none;
+    }
+    .input-premium:disabled {
+        background: rgba(200,200,200,0.2);
+        cursor: not-allowed;
+    }
+    [data-theme="dark"] .input-premium {
+        background: rgba(30,41,59,0.7);
+        border-color: rgba(96,165,250,0.2);
+        color: var(--fg);
+    }
+    [data-theme="dark"] .input-premium:focus {
+        background: rgba(30,41,59,0.9);
+        border-color: rgba(102,126,234,0.5);
+    }
+    [data-theme="dark"] .input-premium:disabled {
+        background: rgba(50,60,80,0.3);
+    }
+    .textarea-premium {
+        border: 2px solid rgba(13,110,253,0.2);
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        font-weight: 500;
+        width: 100%;
+        resize: vertical;
+        min-height: 120px;
+    }
+    .textarea-premium:focus {
+        border-color: rgba(102,126,234,0.5);
+        box-shadow: 0 8px 20px rgba(13,110,253,0.15);
+        background: rgba(255,255,255,0.9);
+        outline: none;
+    }
+    [data-theme="dark"] .textarea-premium {
+        background: rgba(30,41,59,0.7);
+        border-color: rgba(96,165,250,0.2);
+        color: var(--fg);
+    }
+    [data-theme="dark"] .textarea-premium:focus {
+        background: rgba(30,41,59,0.9);
+        border-color: rgba(102,126,234,0.5);
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .checkbox-premium {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: rgba(13,110,253,0.05);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .checkbox-premium:hover {
+        background: rgba(13,110,253,0.1);
+    }
+    [data-theme="dark"] .checkbox-premium {
+        background: rgba(96,165,250,0.08);
+    }
+    [data-theme="dark"] .checkbox-premium:hover {
+        background: rgba(96,165,250,0.15);
+    }
+    .checkbox-premium input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+    .checkbox-premium label {
+        cursor: pointer;
+        margin: 0;
+        font-weight: 500;
+        color: var(--fg);
+    }
+    .btn-save {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        color: #fff;
+        font-weight: 700;
+        padding: 0.875rem 2rem;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(102,126,234,0.3);
+    }
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(102,126,234,0.4);
+        color: #fff;
+    }
+    .btn-cancel {
+        background: rgba(255,255,255,0.5);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(13,110,253,0.2);
+        color: var(--fg);
+        font-weight: 600;
+        padding: 0.875rem 2rem;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .btn-cancel:hover {
+        background: rgba(13,110,253,0.1);
+        border-color: rgba(13,110,253,0.4);
+        transform: translateY(-2px);
+        color: var(--fg);
+    }
+    [data-theme="dark"] .btn-cancel {
+        background: rgba(30,41,59,0.5);
+        border-color: rgba(96,165,250,0.2);
+    }
+    [data-theme="dark"] .btn-cancel:hover {
+        background: rgba(96,165,250,0.15);
+        border-color: rgba(96,165,250,0.4);
+    }
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    @media (max-width: 768px) {
+        .profile-container { min-height: auto; padding: 1.5rem 0; }
+        .profile-container::before,
+        .profile-container::after {
+            width: 250px;
+            height: 250px;
+        }
+        .profile-title { font-size: 1.5rem; }
+        .avatar-section { flex-direction: column; text-align: center; }
+        .avatar-wrapper { width: 100px; height: 100px; }
+        .avatar-fallback { font-size: 2.5rem; }
+        .form-grid { grid-template-columns: 1fr; }
+        .action-buttons { flex-direction: column; }
+        .btn-save, .btn-cancel { width: 100%; text-align: center; }
+    }
 </style>
-<div class="profile-wrap">
-    <div class="card shadow-soft border-0 p-4 p-md-5">
-        <div class="gradient-bar"></div>
-        <h2 class="fw-bold mb-3">Your Profile</h2>
-        <p class="text-muted mb-4">Update your details, personalize your avatar, and let others spot you on the leaderboard.</p>
+
+<div class="container profile-container">
+    <div class="profile-card w-100">
+        <div class="profile-header">
+            <h2 class="profile-title">
+                <i class="bi bi-person-circle me-2"></i>Your Profile
+            </h2>
+            <p class="profile-subtitle">Update your details, personalize your avatar, and stand out on the leaderboard</p>
+        </div>
         <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <div class="d-flex align-items-center gap-4 mb-4 flex-wrap">
-                <div class="avatar-shell shadow-sm">
+            
+            <!-- Avatar Section -->
+            <div class="avatar-section">
+                <div class="avatar-wrapper">
                     {% if current_user.avatar %}
-                        <img id="avatarPreview" src="{{ current_user.avatar|avatar_url(avatar_version) }}" alt="avatar">
+                        <img id="avatarPreview" src="{{ current_user.avatar|avatar_url(avatar_version) }}" alt="avatar" class="avatar-image">
                     {% else %}
-                        <div id="avatarPreviewFallback" class="avatar-fallback bg-secondary d-flex align-items-center justify-content-center text-white fw-bold" style="font-size:38px;">{{ current_user.username[0]|upper }}</div>
+                        <div id="avatarPreviewFallback" class="avatar-fallback">{{ current_user.username[0]|upper }}</div>
                     {% endif %}
-                    <label class="btn btn-sm btn-primary avatar-edit-btn" title="Upload new">
-                        <span style="font-size:0.85rem;">Change</span>
+                    <label class="avatar-change-btn" title="Upload new avatar">
+                        <i class="bi bi-camera-fill"></i>
                         <input type="file" name="avatar" id="avatarInput" hidden accept="image/png,image/jpeg,image/jpg,image/gif">
                     </label>
                 </div>
-                <div class="flex-grow-1 small text-muted">
-                    <div class="mb-1 floating-hint">Avatar guidelines</div>
-                    <ul class="mb-0 ps-3">
-                        <li>Max 2MB size</li>
-                        <li>Formats: png, jpg, jpeg, gif</li>
-                        <li>Square images look best</li>
+                <div class="avatar-guidelines">
+                    <h4 class="guidelines-title">Avatar Guidelines</h4>
+                    <ul class="guidelines-list">
+                        <li>JPG, PNG, or GIF format supported</li>
+                        <li>Maximum file size: 2 MB</li>
+                        <li>Recommended: 200×200 pixels or larger</li>
+                        <li>Square images work best</li>
                     </ul>
                 </div>
             </div>
-            <div class="info-grid mb-3">
-                <div>
-                    <label class="form-label">Display name</label>
-                    <input type="text" name="full_name" class="form-control" value="{{ current_user.full_name or '' }}" placeholder="Your full name">
+
+            <!-- Form Section -->
+            <div class="form-section">
+                <div class="form-grid">
+                    <div class="input-group-premium">
+                        <label class="label-premium">Display Name</label>
+                        <input type="text" name="full_name" class="input-premium" value="{{ current_user.full_name or '' }}" placeholder="Enter your full name">
+                    </div>
+                    <div class="input-group-premium">
+                        <label class="label-premium">Username</label>
+                        <input type="text" class="input-premium" value="{{ current_user.username }}" disabled>
+                    </div>
                 </div>
-                <div>
-                    <label class="form-label">Username</label>
-                    <input type="text" class="form-control" value="{{ current_user.username }}" disabled>
+                
+                <div class="input-group-premium">
+                    <label class="label-premium">Bio</label>
+                    <textarea name="bio" class="textarea-premium" placeholder="Tell others what you like to learn...">{{ current_user.bio or '' }}</textarea>
                 </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Bio</label>
-                <textarea name="bio" class="form-control" rows="4" placeholder="Tell others what you like to learn...">{{ current_user.bio or '' }}</textarea>
-            </div>
-            <div class="form-check mb-4">
-                <input class="form-check-input" type="checkbox" value="1" id="removeAvatar" name="remove_avatar">
-                <label class="form-check-label" for="removeAvatar">Remove current profile picture</label>
-            </div>
-            <div class="d-flex flex-wrap gap-2">
-                <button class="btn btn-primary">Save changes</button>
-                <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                
+                <div class="checkbox-premium">
+                    <input class="form-check-input" type="checkbox" value="1" id="removeAvatar" name="remove_avatar">
+                    <label class="form-check-label" for="removeAvatar">Remove current profile picture</label>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="submit" class="btn-save">
+                        <i class="bi bi-check-circle me-2"></i>Save Changes
+                    </button>
+                    <a href="{{ url_for('auth.dashboard') }}" class="btn-cancel">
+                        <i class="bi bi-x-circle me-2"></i>Cancel
+                    </a>
+                </div>
             </div>
         </form>
     </div>
@@ -80,15 +435,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 reader.onload = function(ev) {
                     if (preview) {
                         preview.src = ev.target.result;
+                        preview.className = 'avatar-image';
                     } else if (fallback) {
                         var img = document.createElement('img');
                         img.id = 'avatarPreview';
                         img.src = ev.target.result;
                         img.alt = 'avatar';
-                        img.style.width = '100%';
-                        img.style.height = '100%';
-                        img.style.borderRadius = '50%';
-                        img.style.objectFit = 'cover';
+                        img.className = 'avatar-image';
                         fallback.replaceWith(img);
                     }
                 };
