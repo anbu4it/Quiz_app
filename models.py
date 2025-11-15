@@ -14,6 +14,9 @@ class User(UserMixin, db.Model):
     full_name = db.Column(db.String(120), nullable=True)
     bio = db.Column(db.String(500), nullable=True)
     avatar = db.Column(db.String(256), nullable=True)  # filename stored in static/uploads
+    current_streak = db.Column(db.Integer, default=0, nullable=False)  # Current consecutive days
+    longest_streak = db.Column(db.Integer, default=0, nullable=False)  # All-time best streak
+    last_quiz_date = db.Column(db.Date, nullable=True)  # Last day user completed a quiz
     scores = db.relationship("Score", backref="user", lazy=True)
 
 

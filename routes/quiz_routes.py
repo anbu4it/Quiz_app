@@ -49,10 +49,15 @@ def quiz():
     # persist username
     session["username"] = username
 
+    # Get difficulty level (default to medium if not specified)
+    difficulty = request.form.get("difficulty", "medium")
+    if difficulty not in ["easy", "medium", "hard"]:
+        difficulty = "medium"
+
     # Fetch questions using TriviaService
     trivia = TriviaService()
     try:
-        questions = trivia.fetch_questions_for_topics(selected_topics, total_needed=5)
+        questions = trivia.fetch_questions_for_topics(selected_topics, total_needed=5, difficulty=difficulty)
     except Exception:
         # On unexpected errors, show generic message
         return "<h3>Unable to load quiz questions. Please try again later.</h3>", 503
@@ -107,8 +112,32 @@ def show_question():
             return redirect(url_for("result.result_page"))
 
         correct_answer = questions[current_index].get("correct")
-        if selected == correct_answer:
+        is_correct = selected == correct_answer
+        
+        if is_correct:
             session["score"] = session.get("score", 0) + 1
+
+        # Check if user wants to see explanation (form includes show_explanation)
+        show_explanation = request.form.get("show_explanation")
+        if show_explanation:
+            # Show the same question with explanation
+            question = questions[current_index]
+            total_questions = len(questions)
+            current_percentage = ((current_index + 1) / total_questions) * 100
+            previous_percentage = (current_index / total_questions) * 100 if current_index > 0 else 0
+            
+            return render_template(
+                "quiz.html",
+                question=question,
+                index=current_index + 1,
+                total=total_questions,
+                current_percentage=current_percentage,
+                previous_percentage=previous_percentage,
+                time_remaining=remaining if remaining is not None else 0,
+                show_explanation=True,
+                selected_answer=selected,
+                is_correct=is_correct,
+            )
 
         # advance index
         session["current_index"] = current_index + 1
@@ -168,8 +197,8 @@ def daily_challenge():
     # Build deterministic questions using a date-based seed
     trivia = TriviaService()
     try:
-        # Use a fixed set like Mixed Topics, total 5
-        questions = trivia.fetch_questions_for_topics(["General Knowledge"], total_needed=5)
+        # Use a fixed set like Mixed Topics, total 5 - daily challenge uses medium difficulty
+        questions = trivia.fetch_questions_for_topics(["General Knowledge"], total_needed=5, difficulty="medium")
     except Exception:
         return "<h3>Unable to load daily challenge. Please try again later.</h3>", 503
 

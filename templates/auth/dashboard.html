@@ -245,7 +245,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 col-sm-12 col-md-4">
+        <div class="col-12 col-sm-6 col-md-3">
             <div class="card stat-card stat-card-warning h-100 shadow-sm border-0">
                 <div class="card-body text-center">
                     <div class="stat-icon-wrapper stat-icon-warning">
@@ -261,6 +261,24 @@
                     </div>
                     <h5 class="stat-label">Best Score</h5>
                     <p class="stat-description">Highest achievement</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <div class="card stat-card stat-card-danger h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <div class="stat-icon-wrapper stat-icon-danger">
+                        <i class="bi bi-fire text-white"></i>
+                    </div>
+                    <div class="stat-number">{{ current_user.current_streak|default(0) }}</div>
+                    <h5 class="stat-label">Current Streak</h5>
+                    <p class="stat-description">
+                        {% if current_user.longest_streak and current_user.longest_streak > 0 %}
+                        Best: {{ current_user.longest_streak }} days
+                        {% else %}
+                        Consecutive days
+                        {% endif %}
+                    </p>
                 </div>
             </div>
         </div>
