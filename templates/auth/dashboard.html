@@ -512,11 +512,14 @@
             <div class="card stat-card shadow-sm border-0 h-100"><div class="card-body"><h5 class="stat-label mb-3">By Category</h5></div></div>
           </div>`;
         container.parentNode.insertBefore(chartsRow, container.nextSibling);
-        chartsRow.querySelectorAll('.card-body')[0].appendChild(ctx1);
-        chartsRow.querySelectorAll('.card-body')[1].appendChild(ctx2);
 
-        // Build data from DOM table rows (simple, no extra server code needed)
-        const rows = Array.from(document.querySelectorAll('.activity-card tbody tr'));
+        // Build data from DOM table rows (ignore empty-state rows)
+        const startUrl = "{{ url_for('main.index') }}";
+        const bodyPerf = chartsRow.querySelectorAll('.card-body')[0];
+        const bodyCat = chartsRow.querySelectorAll('.card-body')[1];
+        const rows = Array.from(document.querySelectorAll('.activity-card tbody tr'))
+            .filter(tr => tr.querySelector('td:first-child h6'));
+
         const labels = []; const values = [];
         rows.forEach(r=>{
             const pctEl = r.querySelector('td:nth-child(3) span.fw-semibold');
@@ -527,16 +530,23 @@
                 values.push(v);
             }
         });
-        // Line chart
+        // Line chart or empty state
         if(labels.length){
+            bodyPerf.appendChild(ctx1);
             new Chart(ctx1, {
                 type:'line',
                 data:{ labels, datasets:[{ label:'Accuracy %', data: values, fill:false, tension:.35, borderColor:'#667eea', backgroundColor:'rgba(102,126,234,0.2)', pointRadius:3 }]},
                 options:{ responsive:true, plugins:{ legend:{ display:false }}, scales:{ y:{ min:0, max:100, ticks:{ stepSize:20 }}} }
             });
+        } else {
+            bodyPerf.insertAdjacentHTML('beforeend', `
+                <div class="text-center text-muted py-4 small">
+                    No data yet. Take your first quiz to see your progress.
+                    <div class="mt-2"><a class="btn btn-primary btn-sm" href="${startUrl}"><i class="bi bi-play-circle me-1"></i>Take Quiz</a></div>
+                </div>`);
         }
 
-        // Category distribution from table first column
+        // Category distribution from table first column or empty state
         const counts = {};
         rows.forEach(r=>{
             const nameEl = r.querySelector('td:first-child h6');
@@ -547,11 +557,17 @@
         });
         const catLabels = Object.keys(counts); const catValues = Object.values(counts);
         if(catLabels.length){
+            bodyCat.appendChild(ctx2);
             new Chart(ctx2, {
                 type:'doughnut',
                 data:{ labels: catLabels, datasets:[{ data: catValues, backgroundColor:['#667eea','#764ba2','#38ef7d','#f093fb','#ff6b6b','#0d6efd','#34a853','#fbbc05'] }]},
                 options:{ responsive:true, plugins:{ legend:{ position:'bottom' }}}
             });
+        } else {
+            bodyCat.insertAdjacentHTML('beforeend', `
+                <div class="text-center text-muted py-4 small">
+                    No category activity yet. Your distribution will appear after a few quizzes.
+                </div>`);
         }
     })();
 </script>
