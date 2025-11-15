@@ -459,15 +459,11 @@
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="4">
-                                        <div class="empty-state-dashboard">
-                                            <i class="bi bi-inbox"></i>
-                                            <h5 class="mb-2">No Quizzes Yet</h5>
-                                            <p class="text-muted mb-3">Start your learning journey today!</p>
-                                            <a href="{{ url_for('main.index') }}" class="btn btn-primary">
-                                                <i class="bi bi-play-circle me-2"></i>Take Your First Quiz
-                                            </a>
-                                        </div>
+                                    <td colspan="4" class="text-center py-5 border-0">
+                                        <i class="bi bi-inbox text-muted mb-3" style="font-size: 3rem;"></i>
+                                        <p class="text-muted mb-3">No quiz attempts yet</p>
+                                        <a href="{{ url_for('main.index') }}" class="btn btn-primary">Take a Quiz</a>
+                                    </td>
                                     </td>
                                 </tr>
                                 {% endfor %}
