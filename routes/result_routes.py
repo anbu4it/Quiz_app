@@ -3,8 +3,34 @@ from flask import Blueprint, redirect, render_template, session, url_for
 from flask_login import current_user
 
 from models import Score, db
+from datetime import date, timedelta
 
 result_bp = Blueprint("result", __name__)
+
+
+def _update_user_streak(user):
+    """Update user's quiz streak based on current date."""
+    today = date.today()
+    last_quiz_date = user.last_quiz_date
+    
+    if last_quiz_date is None:
+        # First quiz ever
+        user.current_streak = 1
+        user.longest_streak = 1
+        user.last_quiz_date = today
+    elif last_quiz_date == today:
+        # Already completed a quiz today, no change
+        pass
+    elif last_quiz_date == today - timedelta(days=1):
+        # Completed quiz yesterday, continue streak
+        user.current_streak += 1
+        if user.current_streak > user.longest_streak:
+            user.longest_streak = user.current_streak
+        user.last_quiz_date = today
+    else:
+        # Streak broken, start over
+        user.current_streak = 1
+        user.last_quiz_date = today
 
 
 @result_bp.route("/result")
@@ -71,6 +97,10 @@ def result_page():
                     user_id=current_user.id, quiz_name=quiz_category, score=score, max_score=total
                 )
                 db.session.add(quiz_score)
+                
+                # Update user streak
+                _update_user_streak(current_user)
+                
                 db.session.commit()
                 try:
                     from flask import current_app
@@ -119,6 +149,21 @@ def result_page():
                     achievements.append(
                         {"title": "Personal Best", "desc": f"Best score in {quiz_category}."}
                     )
+                
+                # Streak achievements
+                if hasattr(current_user, 'current_streak'):
+                    if current_user.current_streak >= 30:
+                        achievements.append(
+                            {"title": "🔥 30-Day Streak!", "desc": "30 consecutive days of learning."}
+                        )
+                    elif current_user.current_streak >= 7:
+                        achievements.append(
+                            {"title": "🔥 7-Day Streak!", "desc": "A week of consistent practice."}
+                        )
+                    elif current_user.current_streak >= 3:
+                        achievements.append(
+                            {"title": "🔥 On Fire!", "desc": f"{current_user.current_streak} day streak."}
+                        )
             except Exception:
                 pass
 
