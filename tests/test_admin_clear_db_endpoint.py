@@ -1,7 +1,8 @@
-import os
-from flask import Flask
 import importlib
+import os
 import types
+
+from flask import Flask
 
 
 def test_admin_clear_db_token_flow(monkeypatch):
@@ -32,12 +33,15 @@ def test_admin_clear_db_token_flow(monkeypatch):
     class _FakeSession:
         def commit(self):
             pass
+
         def rollback(self):
             pass
 
     monkeypatch.setattr(admin_mod, "Score", types.SimpleNamespace(query=_FakeQuery()), raising=True)
     monkeypatch.setattr(admin_mod, "User", types.SimpleNamespace(query=_FakeQuery()), raising=True)
-    monkeypatch.setattr(admin_mod, "db", types.SimpleNamespace(session=_FakeSession()), raising=True)
+    monkeypatch.setattr(
+        admin_mod, "db", types.SimpleNamespace(session=_FakeSession()), raising=True
+    )
 
     r = client.get("/admin/clear-database?token=good")
     assert r.status_code == 200

@@ -1,7 +1,7 @@
 import builtins
-import types
 import importlib
 import sys
+import types
 
 
 def test_clear_database_safe(monkeypatch):
@@ -31,6 +31,7 @@ def test_clear_database_safe(monkeypatch):
     class _FakeSession:
         def commit(self):
             pass
+
         def rollback(self):
             pass
 

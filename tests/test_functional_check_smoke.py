@@ -1,5 +1,6 @@
 from functional_check import run_checks
 
+
 def test_functional_check_runs_and_has_core_keys():
     results = run_checks()
     assert isinstance(results, dict)

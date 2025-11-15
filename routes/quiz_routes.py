@@ -1,10 +1,11 @@
 # routes/quiz_routes.py - handles quiz creation and question navigation
+import time
+
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user
 
 from services.quiz_service import TriviaService
 from services.session_helper import SessionHelper
-import time
 
 quiz_bp = Blueprint("quiz", __name__)
 
@@ -57,7 +58,9 @@ def quiz():
     # Fetch questions using TriviaService
     trivia = TriviaService()
     try:
-        questions = trivia.fetch_questions_for_topics(selected_topics, total_needed=5, difficulty=difficulty)
+        questions = trivia.fetch_questions_for_topics(
+            selected_topics, total_needed=5, difficulty=difficulty
+        )
     except Exception:
         # On unexpected errors, show generic message
         return "<h3>Unable to load quiz questions. Please try again later.</h3>", 503
@@ -113,7 +116,7 @@ def show_question():
 
         correct_answer = questions[current_index].get("correct")
         is_correct = selected == correct_answer
-        
+
         if is_correct:
             session["score"] = session.get("score", 0) + 1
 
@@ -124,8 +127,10 @@ def show_question():
             question = questions[current_index]
             total_questions = len(questions)
             current_percentage = ((current_index + 1) / total_questions) * 100
-            previous_percentage = (current_index / total_questions) * 100 if current_index > 0 else 0
-            
+            previous_percentage = (
+                (current_index / total_questions) * 100 if current_index > 0 else 0
+            )
+
             return render_template(
                 "quiz.html",
                 question=question,
@@ -198,7 +203,9 @@ def daily_challenge():
     trivia = TriviaService()
     try:
         # Use a fixed set like Mixed Topics, total 5 - daily challenge uses medium difficulty
-        questions = trivia.fetch_questions_for_topics(["General Knowledge"], total_needed=5, difficulty="medium")
+        questions = trivia.fetch_questions_for_topics(
+            ["General Knowledge"], total_needed=5, difficulty="medium"
+        )
     except Exception:
         return "<h3>Unable to load daily challenge. Please try again later.</h3>", 503
 

@@ -12,7 +12,13 @@ from models import User, db
 
 @pytest.fixture
 def app():
-    app = create_app({"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:", "WTF_CSRF_ENABLED": False})
+    app = create_app(
+        {
+            "TESTING": True,
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+            "WTF_CSRF_ENABLED": False,
+        }
+    )
     with app.app_context():
         db.create_all()
         yield app
@@ -46,7 +52,9 @@ def test_explanation_branch_renders_and_holds_index(client):
         selected = questions[idx]["options"][0]
 
     # Post answer with show_explanation flag
-    r = client.post("/question", data={"answer": selected, "show_explanation": "true"}, follow_redirects=True)
+    r = client.post(
+        "/question", data={"answer": selected, "show_explanation": "true"}, follow_redirects=True
+    )
     assert r.status_code == 200
     html = r.get_data(as_text=True)
     # Expect explanation UI elements
@@ -61,7 +69,11 @@ def test_explanation_branch_renders_and_holds_index(client):
 @pytest.fixture
 def logged_in_client(app):
     with app.app_context():
-        u = User(username="streaker", email="streak@test.com", password_hash=generate_password_hash("Test123!"))
+        u = User(
+            username="streaker",
+            email="streak@test.com",
+            password_hash=generate_password_hash("Test123!"),
+        )
         db.session.add(u)
         db.session.commit()
     c = app.test_client()
@@ -123,6 +135,7 @@ def test_streak_updates_across_days(logged_in_client, app):
 
     # Gap of several days: move 'today' forward 5 days to reset streak
     _set_result_session(logged_in_client, "General Gap")
+
     class _FakeDate2(date):
         @classmethod
         def today(cls):

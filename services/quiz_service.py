@@ -43,7 +43,9 @@ class TriviaService:
         self.timeout = timeout
         self.retries = max(1, retries)
 
-    def _fetch(self, amount: int = 1, category_id: Optional[int] = None, difficulty: Optional[str] = None) -> List[Dict]:
+    def _fetch(
+        self, amount: int = 1, category_id: Optional[int] = None, difficulty: Optional[str] = None
+    ) -> List[Dict]:
         """Call OpenTDB with simple retry/backoff; return list of raw question dicts (may be empty)."""
         params: Dict[str, Any] = {"amount": amount, "type": "multiple"}
         if category_id:
@@ -69,7 +71,9 @@ class TriviaService:
         # On repeated failure, return empty (caller performs fallback logic)
         return []
 
-    def fetch_questions_for_topics(self, topics: List[str], total_needed: int = 5, difficulty: Optional[str] = None) -> List[Dict]:
+    def fetch_questions_for_topics(
+        self, topics: List[str], total_needed: int = 5, difficulty: Optional[str] = None
+    ) -> List[Dict]:
         """
         Fetch questions distributed across selected topics. Guarantee up to total_needed questions
         when possible, using fallback to general API if needed.
@@ -103,7 +107,9 @@ class TriviaService:
             cat_id = CATEGORY_MAP.get(t)
             try:
                 if difficulty in ["easy", "medium", "hard"]:
-                    raw = self._fetch(amount=questions_to_fetch, category_id=cat_id, difficulty=difficulty)
+                    raw = self._fetch(
+                        amount=questions_to_fetch, category_id=cat_id, difficulty=difficulty
+                    )
                 else:
                     raw = self._fetch(amount=questions_to_fetch, category_id=cat_id)
             except Exception:
@@ -116,7 +122,14 @@ class TriviaService:
                 # Generate explanation based on question type and correct answer
                 explanation = self._generate_explanation(q_text, correct, t)
                 if q_text and correct:
-                    questions.append({"question": q_text, "options": options, "correct": correct, "explanation": explanation})
+                    questions.append(
+                        {
+                            "question": q_text,
+                            "options": options,
+                            "correct": correct,
+                            "explanation": explanation,
+                        }
+                    )
 
         # if not enough, fetch generic questions as fallback
         if len(questions) < total_needed:
@@ -135,7 +148,14 @@ class TriviaService:
                 # Generate explanation for fallback questions (category is unknown)
                 explanation = self._generate_explanation(q_text, correct, "General Knowledge")
                 if q_text and correct:
-                    questions.append({"question": q_text, "options": options, "correct": correct, "explanation": explanation})
+                    questions.append(
+                        {
+                            "question": q_text,
+                            "options": options,
+                            "correct": correct,
+                            "explanation": explanation,
+                        }
+                    )
 
         # make sure we don't ask more than available
         if not questions:
