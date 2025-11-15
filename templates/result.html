@@ -230,6 +230,27 @@
         transform: translateY(-3px);
         color: var(--fg);
     }
+    /* Share modal polish */
+    .share-modal .modal-content{ border-radius:20px; border:2px solid rgba(102,126,234,0.2); box-shadow: 0 20px 50px rgba(102,126,234,0.15); }
+    .share-subtitle{ color: var(--muted); }
+    .share-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin-bottom: 10px; }
+    @media (min-width: 768px){ .share-grid{ grid-template-columns: repeat(6,1fr);} }
+    .share-btn{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:12px 8px; border-radius:16px; background: rgba(102,126,234,0.06); border:1px solid rgba(102,126,234,0.2); transition: transform .18s ease, background .18s ease, box-shadow .18s ease; }
+    .share-btn:hover{ transform: translateY(-2px) scale(1.02); background: rgba(102,126,234,0.1); box-shadow: 0 8px 22px rgba(102,126,234,0.15); }
+    .share-btn:active{ transform: translateY(0) scale(0.99); }
+    .share-btn:focus-visible{ outline: 2px solid rgba(102,126,234,0.6); outline-offset: 2px; }
+    .share-icon{ width:56px; height:56px; border-radius:50%; display:grid; place-items:center; color:#fff; font-size:22px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); background: var(--icon-bg, linear-gradient(135deg,#667eea,#764ba2)); border:3px solid var(--ring, rgba(102,126,234,0.35)); }
+    .share-label{ font-size: .8rem; font-weight:600; color: var(--fg); text-align:center; }
+    #shareTwitter{ --icon-bg: #0f1419; --ring: #273340; }
+    #shareFacebook{ --icon-bg: #1877f2; --ring: #3b82f6; }
+    #shareLinkedIn{ --icon-bg: #0a66c2; --ring: #60a5fa; }
+    #shareWhatsApp{ --icon-bg: #25D366; --ring: #86efac; }
+    #shareTelegram{ --icon-bg: #229ED9; --ring: #7dd3fc; }
+    #shareNative{ --icon-bg: linear-gradient(135deg,#667eea,#764ba2); --ring: #a5b4fc; }
+    .share-card{ background: rgba(255,255,255,0.6); backdrop-filter: blur(12px); border:1px solid rgba(102,126,234,0.25); border-radius:16px; padding:14px; }
+    [data-theme="dark"] .share-card{ background: rgba(30,41,59,0.6); }
+    .canvas-frame{ border-radius:14px; padding:6px; background: linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3)); }
+    .copy-row .btn{ white-space:nowrap; }
     [data-theme="dark"] .btn-result-outline {
         background: rgba(30,41,59,0.5);
         border-color: rgba(96,165,250,0.3);
@@ -320,7 +341,7 @@
                         <i class="bi bi-person-plus me-2"></i>Sign Up
                     </a>
                     {% endif %}
-                    <button type="button" class="btn btn-result-outline" id="btnShare">
+                    <button type="button" class="btn btn-result-outline" data-bs-toggle="modal" data-bs-target="#shareModal">
                         <i class="bi bi-share me-2"></i>Share Score
                     </button>
                 </div>
@@ -331,24 +352,102 @@
 <canvas id="confetti" class="confetti" aria-hidden="true"></canvas>
 {% endif %}
 
-<!-- Share Modal (fallback) -->
-<div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<!-- Share Modal -->
+<div class="modal fade share-modal" id="shareModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Share your score</h5>
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-share-fill me-2 text-primary"></i>Share Your Achievement
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <p class="small text-muted">Copy and share this message with your friends:</p>
-                <div class="input-group">
-                    <input type="text" class="form-control" id="shareText" readonly>
-                    <button class="btn btn-outline-primary" type="button" id="copyShare">Copy</button>
+            <div class="modal-body pt-2">
+                <p class="share-subtitle small mb-3">Challenge friends or post your score. Choose any platform below.</p>
+
+                <!-- Share grid -->
+                <div class="share-grid mb-3">
+                    <button type="button" class="share-btn" id="shareTwitter" title="Share on X/Twitter">
+                        <div class="share-icon"><i class="bi bi-twitter-x"></i></div>
+                        <div class="share-label">X / Twitter</div>
+                    </button>
+                    <button type="button" class="share-btn" id="shareFacebook" title="Share on Facebook">
+                        <div class="share-icon"><i class="bi bi-facebook"></i></div>
+                        <div class="share-label">Facebook</div>
+                    </button>
+                    <button type="button" class="share-btn" id="shareLinkedIn" title="Share on LinkedIn">
+                        <div class="share-icon"><i class="bi bi-linkedin"></i></div>
+                        <div class="share-label">LinkedIn</div>
+                    </button>
+                    <button type="button" class="share-btn" id="shareWhatsApp" title="Share on WhatsApp">
+                        <div class="share-icon"><i class="bi bi-whatsapp"></i></div>
+                        <div class="share-label">WhatsApp</div>
+                    </button>
+                    <button type="button" class="share-btn" id="shareTelegram" title="Share on Telegram">
+                        <div class="share-icon"><i class="bi bi-telegram"></i></div>
+                        <div class="share-label">Telegram</div>
+                    </button>
+                    <button type="button" class="share-btn" id="shareNative" title="Share via device">
+                        <div class="share-icon"><i class="bi bi-share"></i></div>
+                        <div class="share-label">Device Share</div>
+                    </button>
                 </div>
+
+                <!-- Copy helpers -->
+                <div class="share-card mb-3 copy-row">
+                    <div class="small text-muted mb-2">Copy message or just the link:</div>
+                    <div class="input-group mb-2">
+                        <input type="text" class="form-control" id="shareText" readonly>
+                        <button class="btn btn-outline-primary" type="button" id="copyShare">
+                            <i class="bi bi-clipboard"></i> Copy
+                        </button>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="shareLink" readonly>
+                        <button class="btn btn-outline-primary" type="button" id="copyLink">
+                            <i class="bi bi-link-45deg"></i> Copy Link
+                        </button>
+                        <a class="btn btn-outline-secondary" id="shareEmail" target="_blank" title="Share via Email">
+                            <i class="bi bi-envelope"></i>
+                        </a>
+                    </div>
+                    <div id="copySuccess" class="small text-success mt-2" style="display: none;">
+                        <i class="bi bi-check-circle-fill me-1"></i>Copied!
+                    </div>
+                </div>
+
+                <!-- Advanced options: Image + QR -->
+                <details class="mb-2">
+                    <summary class="fw-semibold" style="cursor:pointer"><i class="bi bi-card-image me-2"></i>More options: Share as Image + QR</summary>
+                    <div class="row g-3 mt-1">
+                        <div class="col-12 col-lg-7">
+                            <div class="share-card">
+                                <div class="small text-muted mb-2">Share Image Preview</div>
+                                <div class="canvas-frame">
+                                    <canvas id="shareCanvas" width="700" height="420" class="w-100 rounded-2"></canvas>
+                                </div>
+                                <div class="d-flex gap-2 mt-2">
+                                    <button class="btn btn-sm btn-outline-primary" id="regenImage"><i class="bi bi-magic me-1"></i>Refresh</button>
+                                    <button class="btn btn-sm btn-outline-success" id="downloadImage"><i class="bi bi-download me-1"></i>Download</button>
+                                    <button class="btn btn-sm btn-outline-secondary d-none" id="shareImage"><i class="bi bi-share me-1"></i>Share Image</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-5">
+                            <div class="share-card h-100 d-flex flex-column align-items-center justify-content-center">
+                                <div class="small text-muted mb-2">QR Code</div>
+                                <div id="qrContainer" class="d-flex justify-content-center"></div>
+                            </div>
+                        </div>
+                    </div>
+                </details>
             </div>
         </div>
     </div>
  </div>
+
+<!-- QRCode library for generating QR in the share modal -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script>
     // Animate progress bar and count-up percent
@@ -375,34 +474,197 @@
         requestAnimationFrame(step);
     })();
 
-        // Share button copies a shareable message; fallback to modal if clipboard API fails
+        // Share functionality (upgraded)
     (function(){
-        const btn = document.getElementById('btnShare');
         const scoreText = document.getElementById('scoreText');
-        if(!btn || !scoreText) return;
-        btn.addEventListener('click', async ()=>{
-            const s = scoreText.dataset.score, t = scoreText.dataset.total;
-            const msg = `I scored ${s}/${t} on the Flask Quiz! Try to beat me: ${location.origin}`;
-                        try{
-                                await navigator.clipboard.writeText(msg);
-                                btn.textContent = 'Copied! ✅'; setTimeout(()=>btn.textContent='Share score', 1500);
-                        }catch(e){
-                                try{
-                                    const input = document.getElementById('shareText');
-                                    input.value = msg;
-                                    const modal = new bootstrap.Modal(document.getElementById('shareModal'));
-                                    modal.show();
-                                }catch(_){ alert(msg); }
-                        }
-        });
-                const copyBtn = document.getElementById('copyShare');
-                const input = document.getElementById('shareText');
-                if(copyBtn && input){
-                    copyBtn.addEventListener('click', async ()=>{
-                        input.select();
-                        try{ await navigator.clipboard.writeText(input.value); copyBtn.textContent='Copied!'; setTimeout(()=>copyBtn.textContent='Copy',1200);}catch(e){}
-                    });
+        if(!scoreText) return;
+        
+        const s = Number(scoreText.dataset.score), t = Number(scoreText.dataset.total);
+        const percentage = Math.round((s/t) * 100);
+
+        // Build share URL with UTM params
+        const base = new URL(location.origin);
+        base.searchParams.set('utm_source','share');
+        base.searchParams.set('utm_campaign','result_share');
+        const linkFor = (medium)=>{ const u = new URL(base); u.searchParams.set('utm_medium', medium); return u.toString(); };
+
+        const hashtags = '#FlaskQuiz #QuizMaster';
+        const plainMsg = `🎯 I scored ${s}/${t} (${percentage}%) on Flask Quiz! Can you beat my score?`;
+        const shareMsg = `${plainMsg} ${linkFor('direct')}`;
+        
+        // Pre-fill share text input
+        const input = document.getElementById('shareText');
+        const linkOnly = document.getElementById('shareLink');
+        if(input) input.value = shareMsg;
+        if(linkOnly) linkOnly.value = linkFor('copy');
+        
+        // Popup helper with fallback
+        function pop(url){
+            try{
+                const w=550,h=420; const l=window.screenX + (window.outerWidth - w)/2; const t=window.screenY + (window.outerHeight - h)/2;
+                const win = window.open(url, '_blank', `width=${w},height=${h},left=${l},top=${t}`);
+                if(!win){ throw new Error('popup blocked'); }
+            }catch(e){
+                alert('A popup was blocked by the browser. Opening directly…');
+                location.href = url;
+            }
+        }
+
+        // Twitter/X Share
+        const twitterBtn = document.getElementById('shareTwitter');
+        if(twitterBtn){
+            twitterBtn.addEventListener('click', ()=>{
+                const tweetText = encodeURIComponent(`${plainMsg} ${hashtags}`);
+                const url = encodeURIComponent(linkFor('twitter'));
+                pop(`https://twitter.com/intent/tweet?text=${tweetText}&url=${url}`);
+            });
+        }
+        
+        // Facebook Share
+        const fbBtn = document.getElementById('shareFacebook');
+        if(fbBtn){
+            fbBtn.addEventListener('click', ()=>{
+                const url = encodeURIComponent(linkFor('facebook'));
+                pop(`https://www.facebook.com/sharer/sharer.php?u=${url}`);
+            });
+        }
+        
+        // LinkedIn Share
+        const liBtn = document.getElementById('shareLinkedIn');
+        if(liBtn){
+            liBtn.addEventListener('click', ()=>{
+                const url = encodeURIComponent(linkFor('linkedin'));
+                pop(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`);
+            });
+        }
+
+        // WhatsApp
+        const waBtn = document.getElementById('shareWhatsApp');
+        if(waBtn){
+            waBtn.addEventListener('click', ()=>{
+                const text = encodeURIComponent(`${plainMsg}\n${linkFor('whatsapp')}`);
+                const isMobile = /Android|iPhone|Mobile/i.test(navigator.userAgent);
+                const url = isMobile ? `whatsapp://send?text=${text}` : `https://wa.me/?text=${text}`;
+                pop(url);
+            });
+        }
+
+        // Telegram
+        const tgBtn = document.getElementById('shareTelegram');
+        if(tgBtn){
+            tgBtn.addEventListener('click', ()=>{
+                const text = encodeURIComponent(plainMsg);
+                const url = encodeURIComponent(linkFor('telegram'));
+                pop(`https://t.me/share/url?url=${url}&text=${text}`);
+            });
+        }
+
+        // Native Web Share (text + url)
+        const nativeBtn = document.getElementById('shareNative');
+        if(nativeBtn){
+            nativeBtn.addEventListener('click', async ()=>{
+                if(navigator.share){
+                    try{ await navigator.share({ title: 'Flask Quiz', text: plainMsg, url: linkFor('native') }); }catch(e){}
+                } else {
+                    alert('Device sharing not supported here. Use other options.');
                 }
+            });
+        }
+        
+        // Copy to Clipboard
+        const copyBtn = document.getElementById('copyShare');
+        const copyLinkBtn = document.getElementById('copyLink');
+        const copySuccess = document.getElementById('copySuccess');
+        async function doCopy(value){
+            try{ await navigator.clipboard.writeText(value); if(copySuccess){ copySuccess.style.display='block'; setTimeout(()=>copySuccess.style.display='none', 1600); } }
+            catch(e){ const ta=document.createElement('textarea'); ta.value=value; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+        }
+        if(copyBtn && input){ copyBtn.addEventListener('click', ()=> doCopy(input.value)); }
+        if(copyLinkBtn && linkOnly){ copyLinkBtn.addEventListener('click', ()=> doCopy(linkOnly.value)); }
+
+        // Email
+        const email = document.getElementById('shareEmail');
+        if(email){
+            const subject = encodeURIComponent('My Flask Quiz Score');
+            const body = encodeURIComponent(`${plainMsg}\n\n${linkFor('email')}`);
+            email.href = `mailto:?subject=${subject}&body=${body}`;
+        }
+
+        // QR Code
+        const qrC = document.getElementById('qrContainer');
+        if(window.QRCode && qrC){ qrC.innerHTML=''; new QRCode(qrC, { text: linkFor('qr'), width: 164, height: 164 }); }
+
+        // Share image generation on canvas
+        const canvas = document.getElementById('shareCanvas');
+        const regenBtn = document.getElementById('regenImage');
+        const dlBtn = document.getElementById('downloadImage');
+        const shareImgBtn = document.getElementById('shareImage');
+        const themeDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        function drawCard(ctx,w,h,logo){
+            const grad = ctx.createLinearGradient(0,0,w,h);
+            grad.addColorStop(0, themeDark? '#1f2937' : '#eef2ff');
+            grad.addColorStop(1, themeDark? '#111827' : '#e0e7ff');
+            ctx.fillStyle = grad; ctx.fillRect(0,0,w,h);
+            ctx.fillStyle = themeDark? '#c7d2fe' : '#4338ca';
+            ctx.font = 'bold 28px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto';
+            ctx.fillText('Flask Quiz • Result', 24, 44);
+            ctx.fillStyle = themeDark? '#e5e7eb' : '#111827';
+            ctx.font = '900 92px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto';
+            ctx.fillText(`${s}/${t}`, 24, 150);
+            ctx.font = '600 22px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto';
+            ctx.fillStyle = themeDark? '#93c5fd' : '#1f2937';
+            ctx.fillText(`Accuracy ${percentage}%`, 28, 190);
+            const date = new Date().toLocaleDateString();
+            ctx.fillText(date, 28, 220);
+            // logo watermark top-right
+            if(logo){
+                const size = 48; const pad = 20; const x = w - size - pad; const y = pad - 6;
+                ctx.save();
+                ctx.globalAlpha = 0.95;
+                ctx.drawImage(logo, x, y, size, size);
+                ctx.restore();
+            }
+            // footer
+            ctx.font = '600 18px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto';
+            ctx.fillStyle = themeDark? '#9ca3af' : '#374151';
+            const url = linkFor('image');
+            ctx.fillText(url.replace(/^https?:\/\//,''), 28, h-28);
+            // decorative circles
+            ctx.globalAlpha = 0.15;
+            ctx.fillStyle = themeDark? '#60a5fa' : '#6366f1';
+            for(let i=0;i<6;i++){ const r=30+Math.random()*60; const x=w-60-Math.random()*(w/3); const y=60+Math.random()*(h/2); ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+            ctx.globalAlpha = 1;
+        }
+
+        async function loadLogo(){
+            try {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.src = `${location.origin}/static/images/icon-192.png`;
+                await new Promise((res,rej)=>{ img.onload=res; img.onerror=()=>res(); setTimeout(res, 800); });
+                return img.width ? img : null;
+            } catch(_) { return null; }
+        }
+        async function renderCard(){
+            if(!canvas) return; const ctx = canvas.getContext('2d'); const w = canvas.width, h = canvas.height; const logo = await loadLogo(); drawCard(ctx,w,h,logo); return canvas;
+        }
+        function downloadCanvas(){ if(!canvas) return; const a=document.createElement('a'); a.download = `flask-quiz-${s}-${t}.png`; a.href = canvas.toDataURL('image/png'); a.click(); }
+        async function shareCanvas(){
+            if(!(navigator.canShare && navigator.share)) return false;
+            const blob = await new Promise(res=> canvas.toBlob(res, 'image/png'));
+            const file = new File([blob], 'result.png', { type: 'image/png' });
+            if(!navigator.canShare({ files:[file] })) return false;
+            try{ await navigator.share({ files:[file], title:'Flask Quiz Result', text: plainMsg }); return true; }catch(e){ return false; }
+        }
+
+        renderCard();
+        if(regenBtn) regenBtn.addEventListener('click', renderCard);
+        if(dlBtn) dlBtn.addEventListener('click', downloadCanvas);
+        if(shareImgBtn){
+            if(navigator.canShare && navigator.share){ shareImgBtn.classList.remove('d-none'); }
+            shareImgBtn.addEventListener('click', async ()=>{ const ok = await shareCanvas(); if(!ok) downloadCanvas(); });
+        }
     })();
 
     // Lightweight confetti for high scores
