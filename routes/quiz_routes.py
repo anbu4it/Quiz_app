@@ -4,6 +4,7 @@ from flask_login import current_user
 
 from services.quiz_service import TriviaService
 from services.session_helper import SessionHelper
+import time
 
 quiz_bp = Blueprint("quiz", __name__)
 
@@ -63,6 +64,18 @@ def quiz():
     session["quiz_category"] = selected_topics[0] if len(selected_topics) == 1 else "Mixed Topics"
     SessionHelper.init_quiz_session(session, questions)
 
+    # Initialize quiz timer (default 60 seconds for the whole quiz)
+    try:
+        session["quiz_started_at"] = int(time.time())
+        # Allow override via form (seconds) but clamp to a reasonable range
+        limit = request.form.get("time_limit")
+        limit_sec = int(limit) if limit and str(limit).isdigit() else 60
+        limit_sec = max(30, min(600, limit_sec))
+        session["quiz_time_limit_sec"] = limit_sec
+    except Exception:
+        session["quiz_started_at"] = int(time.time())
+        session["quiz_time_limit_sec"] = 60
+
     return redirect(url_for("quiz.show_question"))
 
 
@@ -74,6 +87,17 @@ def show_question():
 
     questions = session["questions"]
     current_index = session.get("current_index", 0)
+
+    # Timer enforcement: if time expired, end quiz immediately
+    started = session.get("quiz_started_at")
+    limit = session.get("quiz_time_limit_sec", 60)
+    now = int(time.time())
+    remaining = None
+    if started:
+        elapsed = now - int(started)
+        remaining = max(0, int(limit) - elapsed)
+        if remaining <= 0:
+            return redirect(url_for("result.result_page"))
 
     # POST => evaluate answer for current_index
     if request.method == "POST":
@@ -108,4 +132,54 @@ def show_question():
         total=total_questions,
         current_percentage=current_percentage,
         previous_percentage=previous_percentage,
+        time_remaining=remaining if remaining is not None else 0,
     )
+
+
+@quiz_bp.route("/daily", methods=["GET"])  # creates a daily challenge quiz
+def daily_challenge():
+    """Start a deterministic daily challenge quiz (once per day)."""
+    # Label for today's challenge
+    from datetime import datetime
+
+    today_label = datetime.utcnow().strftime("%Y-%m-%d")
+    category_label = f"Daily Challenge {today_label}"
+
+    # If user already played today, just redirect to dashboard with a message
+    try:
+        if current_user.is_authenticated:
+            from models import Score
+
+            existing = (
+                Score.query.filter(
+                    Score.user_id == current_user.id, Score.quiz_name == category_label
+                )
+                .order_by(Score.date_taken.desc())
+                .first()
+            )
+            if existing:
+                flash(
+                    "You've already completed today's Daily Challenge. Come back tomorrow!", "info"
+                )
+                return redirect(url_for("auth.dashboard"))
+    except Exception:
+        pass
+
+    # Build deterministic questions using a date-based seed
+    trivia = TriviaService()
+    try:
+        # Use a fixed set like Mixed Topics, total 5
+        questions = trivia.fetch_questions_for_topics(["General Knowledge"], total_needed=5)
+    except Exception:
+        return "<h3>Unable to load daily challenge. Please try again later.</h3>", 503
+
+    if not questions:
+        return "<h3>Unable to load daily challenge. Please try again later.</h3>", 503
+
+    session["quiz_category"] = category_label
+    SessionHelper.init_quiz_session(session, questions)
+    # Daily challenge uses 90 seconds
+    session["quiz_started_at"] = int(time.time())
+    session["quiz_time_limit_sec"] = 90
+
+    return redirect(url_for("quiz.show_question"))

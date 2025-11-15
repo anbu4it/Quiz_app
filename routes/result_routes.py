@@ -19,6 +19,17 @@ def result_page():
     score = session.get("score", 0)
     total = len(questions)
     quiz_category = session.get("quiz_category", "General Knowledge")
+    # Time tracking
+    started = session.get("quiz_started_at")
+    limit = session.get("quiz_time_limit_sec", 0)
+    import time as _t
+
+    time_spent = None
+    if started:
+        try:
+            time_spent = max(0, int(_t.time()) - int(started))
+        except Exception:
+            time_spent = None
 
     # Validate score data
     if not isinstance(score, int) or not isinstance(total, int):
@@ -29,6 +40,7 @@ def result_page():
 
     # Save score if user is logged in (guard against accidental duplicate by checking latest)
     # Wrap database operations separately so failures don't prevent result display
+    achievements = []
     if current_user.is_authenticated:
         try:
             from datetime import datetime, timezone
@@ -78,6 +90,38 @@ def result_page():
             except Exception:
                 pass
 
+            # Compute achievements (best-effort, non-persistent)
+            try:
+                total_attempts = Score.query.filter_by(user_id=current_user.id).count()
+                if total_attempts == 1:
+                    achievements.append(
+                        {"title": "First Quiz!", "desc": "You completed your first quiz."}
+                    )
+                # Perfect score
+                if total and score == total:
+                    achievements.append(
+                        {"title": "Perfect Score", "desc": "All answers correct. Outstanding!"}
+                    )
+                # Fast finisher: completed under 50% of time limit (if known)
+                if time_spent is not None and limit:
+                    if time_spent <= int(limit) // 2:
+                        achievements.append(
+                            {"title": "Speed Runner", "desc": "Finished in half the allotted time."}
+                        )
+                # Personal best for this category
+                best = (
+                    db.session.query(Score)
+                    .filter(Score.user_id == current_user.id, Score.quiz_name == quiz_category)
+                    .order_by(Score.score.desc())
+                    .first()
+                )
+                if best and best.score == score:
+                    achievements.append(
+                        {"title": "Personal Best", "desc": f"Best score in {quiz_category}."}
+                    )
+            except Exception:
+                pass
+
     # Clean up session data AFTER gathering all needed values
     session_keys = [
         "questions",
@@ -86,6 +130,8 @@ def result_page():
         "quiz_category",
         "answers",
         "current_index",
+        "quiz_started_at",
+        "quiz_time_limit_sec",
     ]
     for key in session_keys:
         session.pop(key, None)
@@ -97,4 +143,7 @@ def result_page():
         score=score,
         total=total,
         category=quiz_category,
+        achievements=achievements,
+        time_limit=limit,
+        time_spent=time_spent,
     )

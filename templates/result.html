@@ -272,6 +272,27 @@
                 <div class="percentage-display">
                     <span id="percentText">{{ (score / total * 100)|round(0) }}%</span>
                 </div>
+
+                {% if time_spent is not none and time_limit %}
+                <div class="small text-muted mb-3">
+                    <i class="bi bi-stopwatch me-1"></i>Time: {{ time_spent }}s / {{ time_limit }}s
+                </div>
+                {% endif %}
+                
+                {% if achievements and achievements|length %}
+                <div class="mt-3 mb-2">
+                    {% for a in achievements %}
+                    <span class="badge rounded-pill me-1 mb-2" style="background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:.5rem 0.9rem; font-weight:600;">
+                        <i class="bi bi-award me-1"></i>{{ a.title }}
+                    </span>
+                    {% endfor %}
+                </div>
+                <div class="text-muted small mb-3">
+                    {% for a in achievements %}
+                        <div>{{ a.desc }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 
                 <div class="result-message {% if score / total >= 0.7 %}result-message-success{% elif score / total >= 0.4 %}result-message-warning{% else %}result-message-danger{% endif %}">
                     {% if score / total >= 0.7 %}
@@ -286,6 +307,9 @@
                 <div class="result-actions">
                     <a href="{{ url_for('main.index') }}" class="btn btn-result-primary">
                         <i class="bi bi-arrow-repeat me-2"></i>Try Another Quiz
+                    </a>
+                    <a href="{{ url_for('quiz.daily_challenge') }}" class="btn btn-result-outline">
+                        <i class="bi bi-stars me-2"></i>Daily Challenge
                     </a>
                     {% if current_user.is_authenticated %}
                     <a href="{{ url_for('auth.dashboard') }}" class="btn btn-result-outline">

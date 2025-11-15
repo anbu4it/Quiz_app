@@ -295,6 +295,19 @@ def dashboard():
     return render_template("auth/dashboard.html", scores=user_scores)
 
 
+@auth_bp.route("/history")
+@login_required
+def history():
+    """Show user's quiz history."""
+    items = (
+        Score.query.filter_by(user_id=current_user.id)
+        .order_by(Score.date_taken.desc())
+        .limit(100)
+        .all()
+    )
+    return render_template("auth/history.html", scores=items)
+
+
 @auth_bp.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
