@@ -31,15 +31,15 @@ def upgrade():
     except Exception:
         pass
 
-    # Aggregate total_xp onto users
+    # Aggregate total_xp onto users (quote table name correctly per dialect)
     try:
-        conn.execute(sa.text("UPDATE [user] SET total_xp = COALESCE((SELECT SUM(s.xp_earned) FROM score s WHERE s.user_id = [user].id), 0)"))
+        if conn.dialect.name == 'postgresql':
+            conn.execute(sa.text('UPDATE "user" SET total_xp = COALESCE((SELECT SUM(s.xp_earned) FROM score s WHERE s.user_id = "user".id), 0)'))
+        else:
+            # SQLite accepts double-quoted identifiers as well
+            conn.execute(sa.text('UPDATE "user" SET total_xp = COALESCE((SELECT SUM(s.xp_earned) FROM score s WHERE s.user_id = "user".id), 0)'))
     except Exception:
-        # Some dialects use different quoting
-        try:
-            conn.execute(sa.text("UPDATE user SET total_xp = COALESCE((SELECT SUM(s.xp_earned) FROM score s WHERE s.user_id = user.id), 0)"))
-        except Exception:
-            pass
+        pass
 
     # Drop server_default now that data is backfilled
     with op.batch_alter_table('user') as batch_op:

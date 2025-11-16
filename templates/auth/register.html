@@ -230,8 +230,8 @@
             
             <div class="form-group-auth">
                 <label for="password" class="label-auth">Password</label>
-                <input type="password" class="input-auth" id="password" name="password" required minlength="8" aria-describedby="pw-hint" placeholder="At least 8 characters">
-                <small id="pw-hint" class="password-hint">Use at least 8 characters, including a letter and a number</small>
+                <input type="password" class="input-auth" id="password" name="password" required minlength="8" aria-describedby="pw-hint" placeholder="At least 8 characters with mixed types">
+                <small id="pw-hint" class="password-hint">Use at least 8 characters and include: uppercase, lowercase, a number, and a special character.</small>
             </div>
             
             <div class="form-group-auth">
@@ -259,18 +259,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const pw = document.getElementById('password');
   const hint = document.getElementById('pw-hint');
   if(!pw || !hint) return;
-  pw.addEventListener('input', () => {
+    pw.addEventListener('input', () => {
     const v = pw.value;
-    const long = v.length >= 8;
-    const hasLetter = /[A-Za-z]/.test(v);
-    const hasNum = /\d/.test(v);
-    if(long && hasLetter && hasNum){
-      hint.textContent = '✓ Looking good!';
+        const long = v.length >= 8;
+        const hasLower = /[a-z]/.test(v);
+        const hasUpper = /[A-Z]/.test(v);
+        const hasNum = /\d/.test(v);
+        const hasSpecial = /[^A-Za-z0-9]/.test(v);
+        if(long && hasLower && hasUpper && hasNum && hasSpecial){
+            hint.textContent = '✓ Meets all requirements';
       hint.classList.add('valid');
       pw.classList.add('is-valid');
       pw.classList.remove('is-invalid');
     } else {
-      hint.textContent = 'Use at least 8 characters, including a letter and a number';
+            hint.textContent = 'Use at least 8 characters and include: uppercase, lowercase, a number, and a special character.';
       hint.classList.remove('valid');
       pw.classList.remove('is-valid');
     }

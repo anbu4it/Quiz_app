@@ -336,14 +336,16 @@
                                 </div>
                             </div>
                             <div class="mb-4">
-                                <label class="label-premium">
-                                    <i class="bi bi-speedometer2 me-1"></i>Difficulty Level
+                                <label class="label-premium d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-speedometer2 me-1"></i>Difficulty Level</span>
+                                    <small class="text-muted">XP per correct: <span id="xp-per-correct" class="fw-semibold">10</span></small>
                                 </label>
-                                <select class="form-select input-premium" name="difficulty">
-                                    <option value="easy">🟢 Easy - Perfect for beginners</option>
-                                    <option value="medium" selected>🟡 Medium - Balanced challenge</option>
-                                    <option value="hard">🔴 Hard - Expert level</option>
+                                <select class="form-select input-premium" name="difficulty" id="difficulty-select" aria-describedby="xp-hint">
+                                    <option value="easy">🟢 Easy — Earn 5 XP per correct</option>
+                                    <option value="medium" selected>🟡 Medium — Earn 10 XP per correct</option>
+                                    <option value="hard">🔴 Hard — Earn 15 XP per correct</option>
                                 </select>
+                                <div id="xp-hint" class="form-text text-muted mt-1">Higher difficulty awards more XP per correct answer.</div>
                             </div>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-start-quiz">
@@ -359,6 +361,18 @@
 </section>
 <script>
     (function(){
+        // Difficulty → XP mapping display
+        const diffSelect = document.getElementById('difficulty-select');
+        const xpOut = document.getElementById('xp-per-correct');
+        const xpMap = { easy: 5, medium: 10, hard: 15 };
+        function updateXp(){
+            const v = (diffSelect?.value || 'medium');
+            const xp = xpMap[v] ?? 10;
+            if(xpOut){ xpOut.textContent = String(xp); }
+        }
+        diffSelect?.addEventListener('change', updateXp);
+        updateXp();
+
         const selectAll = document.getElementById('btn-select-all');
         const clearBtn = document.getElementById('btn-clear');
         const checks = () => Array.from(document.querySelectorAll('input[name="topics"]'));
