@@ -390,8 +390,13 @@ def profile():
 def leaderboard():
 
     try:
-        # First, get all unique quiz categories
-        categories = db.session.query(Score.quiz_name).distinct().all()
+        # First, get all unique quiz categories (exclude Daily Challenge)
+        categories = (
+            db.session.query(Score.quiz_name)
+            .filter(~Score.quiz_name.like("Daily Challenge%"))
+            .distinct()
+            .all()
+        )
         categories = [cat[0] for cat in categories]
 
         # Initialize leaderboards dictionary with empty lists for all categories
@@ -451,6 +456,7 @@ def leaderboard():
                 func.avg(Score.score * 100.0 / Score.max_score).label("avg_percentage"),
             )
             .join(Score)
+            .filter(~Score.quiz_name.like("Daily Challenge%"))
             .group_by(User.username, User.avatar)
             .order_by(desc("avg_percentage"))
             .limit(5)
