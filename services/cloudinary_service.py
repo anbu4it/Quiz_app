@@ -57,13 +57,13 @@ def upload_avatar(file, user_id: int) -> str:
             # Fall through to local storage
 
     # Fallback to local storage (development/testing)
-    from datetime import datetime
+    from datetime import UTC, datetime
 
     from werkzeug.utils import secure_filename
 
     filename = secure_filename(file.filename)
     _, ext = os.path.splitext(filename)
-    safe_name = f"user_{user_id}_{int(datetime.utcnow().timestamp())}{ext}"
+    safe_name = f"user_{user_id}_{int(datetime.now(UTC).timestamp())}{ext}"
 
     upload_dir = os.path.join(str(current_app.static_folder), "uploads")
     os.makedirs(upload_dir, exist_ok=True)
