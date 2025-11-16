@@ -3,6 +3,6 @@
 # This automatically runs database migrations on every deploy
 
 echo "Running database migrations..."
-flask db upgrade
+flask --app wsgi db upgrade
 
 echo "Build hook complete!"
