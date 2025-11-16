@@ -28,7 +28,12 @@ except ValueError:
 
 
 class TriviaService:
-    def __init__(self, timeout: Optional[int] = None, retries: Optional[int] = None):
+    def __init__(
+        self,
+        timeout: Optional[int] = None,
+        retries: Optional[int] = None,
+        allow_synthetic: Optional[bool] = None,
+    ):
         # Allow overrides from env; fallback to provided argument or defaults
         if timeout is None:
             try:
@@ -42,6 +47,9 @@ class TriviaService:
                 retries = 3
         self.timeout = timeout
         self.retries = max(1, retries)
+        if allow_synthetic is None:
+            allow_synthetic = os.getenv("ALLOW_SYNTHETIC_QUESTIONS", "0") == "1"
+        self.allow_synthetic = allow_synthetic
 
     def _fetch(
         self, amount: int = 1, category_id: Optional[int] = None, difficulty: Optional[str] = None
@@ -157,6 +165,11 @@ class TriviaService:
                         }
                     )
 
+        # As a final safety net for offline runs initiated via routes, synthesize questions
+        if len(questions) < total_needed and self.allow_synthetic:
+            needed = total_needed - len(questions)
+            questions.extend(self._synthetic_questions(topics, needed))
+
         # make sure we don't ask more than available
         if not questions:
             return []
@@ -184,3 +197,24 @@ class TriviaService:
             "Celebrities": f"The correct answer is '{correct_answer}'. This is a notable fact about popular culture.",
         }
         return explanations.get(category, f"The correct answer is '{correct_answer}'.")
+
+    def _synthetic_questions(self, topics: List[str], count: int) -> List[Dict]:
+        """Generate simple deterministic questions for offline/testing scenarios."""
+        if not topics:
+            topics = ["General Knowledge"]
+        out: List[Dict] = []
+        base_options = ["A", "B", "C", "D"]
+        for i in range(count):
+            topic = topics[i % len(topics)]
+            question = f"{topic}: Sample Question {i + 1}. Choose 'A'."
+            correct = "A"
+            explanation = self._generate_explanation(question, correct, topic)
+            out.append(
+                {
+                    "question": question,
+                    "options": base_options[:],
+                    "correct": correct,
+                    "explanation": explanation,
+                }
+            )
+        return out

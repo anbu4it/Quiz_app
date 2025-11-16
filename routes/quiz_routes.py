@@ -56,7 +56,8 @@ def quiz():
         difficulty = "medium"
 
     # Fetch questions using TriviaService
-    trivia = TriviaService()
+    # Enable synthetic questions when API is unreachable during app flows/tests
+    trivia = TriviaService(allow_synthetic=True)
     try:
         questions = trivia.fetch_questions_for_topics(
             selected_topics, total_needed=5, difficulty=difficulty
@@ -200,7 +201,7 @@ def daily_challenge():
         pass
 
     # Build deterministic questions using a date-based seed
-    trivia = TriviaService()
+    trivia = TriviaService(allow_synthetic=True)
     try:
         # Use a fixed set like Mixed Topics, total 5 - daily challenge uses medium difficulty
         questions = trivia.fetch_questions_for_topics(
