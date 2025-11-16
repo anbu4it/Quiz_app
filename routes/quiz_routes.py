@@ -54,6 +54,8 @@ def quiz():
     difficulty = request.form.get("difficulty", "medium")
     if difficulty not in ["easy", "medium", "hard"]:
         difficulty = "medium"
+    # Persist difficulty for result/XP computation
+    session["difficulty"] = difficulty
 
     # Fetch questions using TriviaService
     # Enable synthetic questions when API is unreachable during app flows/tests
@@ -218,5 +220,7 @@ def daily_challenge():
     # Daily challenge uses 90 seconds
     session["quiz_started_at"] = int(time.time())
     session["quiz_time_limit_sec"] = 90
+    # Daily challenge difficulty is medium by design
+    session["difficulty"] = "medium"
 
     return redirect(url_for("quiz.show_question"))

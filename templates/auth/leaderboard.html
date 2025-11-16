@@ -339,7 +339,7 @@
                                 <tr>
                                     <th>Rank</th>
                                     <th>User</th>
-                                    <th>Average Score</th>
+                                    <th>Total XP</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -369,7 +369,7 @@
                                         </td>
                                         <td>
                                             <span class="score-badge {% if loop.index == 1 %}score-gold{% elif loop.index == 2 %}score-silver{% elif loop.index == 3 %}score-bronze{% else %}score-default{% endif %}">
-                                                {{ "%.1f"|format(performer.avg_percentage) }}%
+                                                {{ performer.total_xp }} XP
                                             </span>
                                         </td>
                                     </tr>
@@ -407,8 +407,8 @@
                                 <tr>
                                     <th>Rank</th>
                                     <th>Username</th>
-                                    <th>Best Score</th>
-                                    <th>Avg Score</th>
+                                    <th>Topic XP</th>
+                                    <th>Attempts</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -438,11 +438,11 @@
                                         </td>
                                         <td>
                                             <span class="score-badge {% if loop.index == 1 %}score-gold{% elif loop.index == 2 %}score-silver{% elif loop.index == 3 %}score-bronze{% else %}score-default{% endif %}">
-                                                {{ score.best_score }}%
+                                                {{ score.topic_xp }} XP
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="score-badge score-default">{{ score.avg_score }}%</span>
+                                            <span class="score-badge score-default">{{ score.attempts }}</span>
                                         </td>
                                     </tr>
                                     {% endfor %}

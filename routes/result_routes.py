@@ -94,20 +94,45 @@ def result_page():
                         pass
 
             if should_insert:
+                # Determine difficulty for XP calculation
+                difficulty = session.get("difficulty")
+                if difficulty not in ("easy", "medium", "hard"):
+                    difficulty = "medium"
+
+                # XP calculation: base per correct * difficulty multiplier
+                # easy=5 xp/correct, medium=10 xp/correct, hard=15 xp/correct
+                base = {"easy": 5, "medium": 10, "hard": 15}[difficulty]
+                xp_earned = int(base * int(score))
+
                 quiz_score = Score(
-                    user_id=current_user.id, quiz_name=quiz_category, score=score, max_score=total
+                    user_id=current_user.id,
+                    quiz_name=quiz_category,
+                    score=score,
+                    max_score=total,
+                    difficulty=difficulty,
+                    xp_earned=xp_earned,
                 )
                 db.session.add(quiz_score)
 
                 # Update user streak
                 _update_user_streak(current_user)
 
+                # Update total XP on user
+                try:
+                    # Initialize if null just in case
+                    if getattr(current_user, "total_xp", None) is None:
+                        current_user.total_xp = 0
+                    current_user.total_xp = int(current_user.total_xp) + int(xp_earned)
+                except Exception:
+                    # If user model doesn't yet have total_xp for some reason, ignore
+                    pass
+
                 db.session.commit()
                 try:
                     from flask import current_app
 
                     current_app.logger.info(
-                        f"Score saved: User {current_user.username} - {quiz_category}: {score}/{total}"
+                        f"Score saved: User {current_user.username} - {quiz_category}: {score}/{total} (xp={xp_earned}, diff={difficulty})"
                     )
                 except Exception:
                     pass
@@ -180,6 +205,7 @@ def result_page():
         "score",
         "current_question",
         "quiz_category",
+        "difficulty",
         "answers",
         "current_index",
         "quiz_started_at",

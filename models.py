@@ -17,6 +17,8 @@ class User(UserMixin, db.Model):
     current_streak = db.Column(db.Integer, default=0, nullable=False)  # Current consecutive days
     longest_streak = db.Column(db.Integer, default=0, nullable=False)  # All-time best streak
     last_quiz_date = db.Column(db.Date, nullable=True)  # Last day user completed a quiz
+    # Total XP accumulated across all quizzes
+    total_xp = db.Column(db.Integer, default=0, nullable=False)
     scores = db.relationship("Score", backref="user", lazy=True)
 
 
@@ -36,6 +38,10 @@ class Score(db.Model):
     quiz_name = db.Column(db.String(100), nullable=False)
     score = db.Column(db.Integer, nullable=False)
     max_score = db.Column(db.Integer, nullable=False)
+    # Difficulty level used when taking the quiz (easy/medium/hard)
+    difficulty = db.Column(db.String(16), nullable=True)
+    # XP earned for this attempt (difficulty-weighted)
+    xp_earned = db.Column(db.Integer, default=0, nullable=False)
     # Use timezone-aware UTC timestamps to avoid deprecation warnings and ambiguity
     date_taken = db.Column(
         db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
