@@ -100,6 +100,9 @@
                         <a href="{{ url_for('main.index') }}" class="btn btn-welcome">
                             <i class="bi bi-play-circle me-2"></i>Take Quiz
                         </a>
+                        <a href="{{ url_for('quiz.daily_challenge') }}" class="btn btn-welcome">
+                            <i class="bi bi-stars me-2"></i>Daily Challenge
+                        </a>
                     </div>
                 </div>
             </div>
@@ -242,7 +245,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 col-sm-12 col-md-4">
+        <div class="col-12 col-sm-6 col-md-3">
             <div class="card stat-card stat-card-warning h-100 shadow-sm border-0">
                 <div class="card-body text-center">
                     <div class="stat-icon-wrapper stat-icon-warning">
@@ -258,6 +261,24 @@
                     </div>
                     <h5 class="stat-label">Best Score</h5>
                     <p class="stat-description">Highest achievement</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <div class="card stat-card stat-card-danger h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <div class="stat-icon-wrapper stat-icon-danger">
+                        <i class="bi bi-fire text-white"></i>
+                    </div>
+                    <div class="stat-number">{{ current_user.current_streak|default(0) }}</div>
+                    <h5 class="stat-label">Current Streak</h5>
+                    <p class="stat-description">
+                        {% if current_user.longest_streak and current_user.longest_streak > 0 %}
+                        Best: {{ current_user.longest_streak }} days
+                        {% else %}
+                        Consecutive days
+                        {% endif %}
+                    </p>
                 </div>
             </div>
         </div>
@@ -456,15 +477,11 @@
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="4">
-                                        <div class="empty-state-dashboard">
-                                            <i class="bi bi-inbox"></i>
-                                            <h5 class="mb-2">No Quizzes Yet</h5>
-                                            <p class="text-muted mb-3">Start your learning journey today!</p>
-                                            <a href="{{ url_for('main.index') }}" class="btn btn-primary">
-                                                <i class="bi bi-play-circle me-2"></i>Take Your First Quiz
-                                            </a>
-                                        </div>
+                                    <td colspan="4" class="text-center py-5 border-0">
+                                        <i class="bi bi-inbox text-muted mb-3" style="font-size: 3rem;"></i>
+                                        <p class="text-muted mb-3">No quiz attempts yet</p>
+                                        <a href="{{ url_for('main.index') }}" class="btn btn-primary">Take a Quiz</a>
+                                    </td>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -490,3 +507,82 @@
         });
     });
 </script>
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    (function(){
+        const ctx1 = document.createElement('canvas');
+        const ctx2 = document.createElement('canvas');
+        const container = document.querySelector('.dashboard-page .row');
+        if(!container) return;
+        // Insert a charts row before recent activity
+        const chartsRow = document.createElement('div');
+        chartsRow.className = 'row g-3 g-md-4 mb-4';
+        chartsRow.innerHTML = `
+          <div class="col-12 col-lg-8">
+            <div class="card stat-card shadow-sm border-0 h-100"><div class="card-body"><h5 class="stat-label mb-3">Performance Over Time</h5></div></div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="card stat-card shadow-sm border-0 h-100"><div class="card-body"><h5 class="stat-label mb-3">By Category</h5></div></div>
+          </div>`;
+        container.parentNode.insertBefore(chartsRow, container.nextSibling);
+
+        // Build data from DOM table rows (ignore empty-state rows)
+        const startUrl = "{{ url_for('main.index') }}";
+        const bodyPerf = chartsRow.querySelectorAll('.card-body')[0];
+        const bodyCat = chartsRow.querySelectorAll('.card-body')[1];
+        const rows = Array.from(document.querySelectorAll('.activity-card tbody tr'))
+            .filter(tr => tr.querySelector('td:first-child h6'));
+
+        const labels = []; const values = [];
+        rows.forEach(r=>{
+            const pctEl = r.querySelector('td:nth-child(3) span.fw-semibold');
+            const dateEl = r.querySelector('td:last-child span');
+            if(pctEl && dateEl){
+                const v = parseInt(pctEl.textContent.replace('%',''))||0;
+                labels.push(dateEl.textContent.trim());
+                values.push(v);
+            }
+        });
+        // Line chart or empty state
+        if(labels.length){
+            bodyPerf.appendChild(ctx1);
+            new Chart(ctx1, {
+                type:'line',
+                data:{ labels, datasets:[{ label:'Accuracy %', data: values, fill:false, tension:.35, borderColor:'#667eea', backgroundColor:'rgba(102,126,234,0.2)', pointRadius:3 }]},
+                options:{ responsive:true, plugins:{ legend:{ display:false }}, scales:{ y:{ min:0, max:100, ticks:{ stepSize:20 }}} }
+            });
+        } else {
+            bodyPerf.insertAdjacentHTML('beforeend', `
+                <div class="text-center text-muted py-4 small">
+                    No data yet. Take your first quiz to see your progress.
+                    <div class="mt-2"><a class="btn btn-primary btn-sm" href="${startUrl}"><i class="bi bi-play-circle me-1"></i>Take Quiz</a></div>
+                </div>`);
+        }
+
+        // Category distribution from table first column or empty state
+        const counts = {};
+        rows.forEach(r=>{
+            const nameEl = r.querySelector('td:first-child h6');
+            if(nameEl){
+                const k = nameEl.textContent.trim();
+                counts[k] = (counts[k]||0)+1;
+            }
+        });
+        const catLabels = Object.keys(counts); const catValues = Object.values(counts);
+        if(catLabels.length){
+            bodyCat.appendChild(ctx2);
+            new Chart(ctx2, {
+                type:'doughnut',
+                data:{ labels: catLabels, datasets:[{ data: catValues, backgroundColor:['#667eea','#764ba2','#38ef7d','#f093fb','#ff6b6b','#0d6efd','#34a853','#fbbc05'] }]},
+                options:{ responsive:true, plugins:{ legend:{ position:'bottom' }}}
+            });
+        } else {
+            bodyCat.insertAdjacentHTML('beforeend', `
+                <div class="text-center text-muted py-4 small">
+                    No category activity yet. Your distribution will appear after a few quizzes.
+                </div>`);
+        }
+    })();
+</script>
+{% endblock %}

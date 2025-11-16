@@ -295,6 +295,19 @@ def dashboard():
     return render_template("auth/dashboard.html", scores=user_scores)
 
 
+@auth_bp.route("/history")
+@login_required
+def history():
+    """Show user's quiz history."""
+    items = (
+        Score.query.filter_by(user_id=current_user.id)
+        .order_by(Score.date_taken.desc())
+        .limit(100)
+        .all()
+    )
+    return render_template("auth/history.html", scores=items)
+
+
 @auth_bp.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
@@ -377,14 +390,19 @@ def profile():
 def leaderboard():
 
     try:
-        # First, get all unique quiz categories
-        categories = db.session.query(Score.quiz_name).distinct().all()
+        # First, get all unique quiz categories (exclude Daily Challenge)
+        categories = (
+            db.session.query(Score.quiz_name)
+            .filter(~Score.quiz_name.like("Daily Challenge%"))
+            .distinct()
+            .all()
+        )
         categories = [cat[0] for cat in categories]
 
         # Initialize leaderboards dictionary with empty lists for all categories
         leaderboards = {category: [] for category in categories}
 
-        # Get top scores by topic
+        # Get top XP by topic
         for category in categories:
             # include avatar for display in leaderboard
             topic_scores = (
@@ -392,14 +410,13 @@ def leaderboard():
                     User.username,
                     User.avatar,
                     func.count(Score.id).label("attempts"),
-                    func.avg(Score.score * 100.0 / Score.max_score).label("avg_percentage"),
-                    func.max(Score.score * 100.0 / Score.max_score).label("best_percentage"),
+                    func.coalesce(func.sum(Score.xp_earned), 0).label("topic_xp"),
                     func.max(Score.date_taken).label("last_attempt"),
                 )
                 .join(User)
                 .filter(Score.quiz_name == category)
                 .group_by(User.username, User.avatar)
-                .order_by(desc("best_percentage"), desc("avg_percentage"), desc("last_attempt"))
+                .order_by(desc("topic_xp"), desc("last_attempt"))
                 .all()
             )
 
@@ -423,8 +440,7 @@ def leaderboard():
                         "username": score.username,
                         "avatar": avatar_path,
                         "attempts": score.attempts,
-                        "avg_score": round(score.avg_percentage, 2),
-                        "best_score": round(score.best_percentage, 2),
+                        "topic_xp": int(getattr(score, "topic_xp", 0) or 0),
                     }
                 )
 
@@ -435,11 +451,12 @@ def leaderboard():
                 User.username,
                 User.avatar,
                 func.count(Score.id).label("total_quizzes"),
-                func.avg(Score.score * 100.0 / Score.max_score).label("avg_percentage"),
+                func.coalesce(func.sum(Score.xp_earned), 0).label("total_xp"),
             )
             .join(Score)
+            .filter(~Score.quiz_name.like("Daily Challenge%"))
             .group_by(User.username, User.avatar)
-            .order_by(desc("avg_percentage"))
+            .order_by(desc("total_xp"))
             .limit(5)
             .all()
         )
@@ -464,7 +481,7 @@ def leaderboard():
                     "username": p.username,
                     "avatar": avatar_path,
                     "total_quizzes": p.total_quizzes,
-                    "avg_percentage": round(p.avg_percentage, 2),
+                    "total_xp": int(getattr(p, "total_xp", 0) or 0),
                 }
             )
 

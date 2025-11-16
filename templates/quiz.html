@@ -65,6 +65,22 @@
         font-weight: 600;
         color: var(--fg);
     }
+    .timer-badge{
+        display:inline-flex;
+        align-items:center;
+        gap:.5rem;
+        padding:.35rem .75rem;
+        border-radius:999px;
+        background: rgba(255,255,255,0.6);
+        border:2px solid rgba(13,110,253,0.25);
+        font-weight:700;
+        color:#0d6efd;
+    }
+    [data-theme="dark"] .timer-badge{
+        background: rgba(30,41,59,0.6);
+        border-color: rgba(96,165,250,0.3);
+        color:#8bb8ff;
+    }
     .progress-percentage {
         font-size: 1.1rem;
         font-weight: 700;
@@ -192,6 +208,26 @@
     .option-item input[type="radio"]:checked + .option-label::before {
         display: none;
     }
+    .option-correct {
+        background: linear-gradient(135deg, #11998e, #38ef7d) !important;
+        border-color: transparent !important;
+        color: #fff !important;
+    }
+    .option-wrong {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a6f) !important;
+        border-color: transparent !important;
+        color: #fff !important;
+    }
+    .option-label:has(input:disabled) {
+        cursor: default;
+    }
+    .explanation-box {
+        animation: fadeIn 0.5s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
     .btn-next-question {
         background: linear-gradient(135deg, #667eea, #764ba2);
         border: none;
@@ -239,12 +275,18 @@
     <div class="row justify-content-center w-100">
         <div class="col-12 col-md-10 col-lg-8 col-xl-7">
             <div class="quiz-card p-4 p-md-5">
-                    <!-- Progress Bar -->
+                    <!-- Progress Bar + Timer -->
                     <div class="progress-header">
                         <span class="progress-text">
                             <i class="bi bi-list-ol me-2"></i>Question {{ index }} of {{ total }}
                         </span>
-                        <span class="progress-percentage">{{ current_percentage|round(0) }}%</span>
+                        <span class="d-flex align-items-center gap-2">
+                            <span class="timer-badge" id="quizTimer" data-remaining="{{ time_remaining|default(0, true) }}">
+                                <i class="bi bi-stopwatch"></i>
+                                <span id="timerText">--:--</span>
+                            </span>
+                            <span class="progress-percentage">{{ current_percentage|round(0) }}%</span>
+                        </span>
                     </div>
                     <div class="progress progress-premium">
                         <div 
@@ -263,18 +305,53 @@
                     <div class="question-text">{{ question.question | safe }}</div>
 
                     <!-- Options -->
-                    <form method="POST" action="{{ url_for('quiz.show_question') }}">
+                    <form method="POST" action="{{ url_for('quiz.show_question') }}" id="quizForm">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        {% if not show_explanation %}
+                        <input type="hidden" name="show_explanation" value="true" />
+                        {% endif %}
                         <div class="options-grid">
                             {% for option in question.options %}
                             <div class="option-item">
-                                <input type="radio" name="answer" value="{{ option }}" id="option{{ loop.index }}" required>
-                                <label for="option{{ loop.index }}" class="option-label">{{ option | safe }}</label>
+                                <input type="radio" name="answer" value="{{ option }}" id="option{{ loop.index }}" 
+                                    {% if show_explanation %}disabled{% endif %}
+                                    {% if show_explanation and option == selected_answer %}checked{% endif %}
+                                    {% if not show_explanation %}required{% endif %}>
+                                <label for="option{{ loop.index }}" class="option-label 
+                                    {% if show_explanation and option == question.correct %}option-correct{% endif %}
+                                    {% if show_explanation and option == selected_answer and not is_correct %}option-wrong{% endif %}">
+                                    {{ option | safe }}
+                                    {% if show_explanation and option == question.correct %}
+                                    <i class="bi bi-check-circle-fill ms-2 text-success"></i>
+                                    {% endif %}
+                                    {% if show_explanation and option == selected_answer and not is_correct %}
+                                    <i class="bi bi-x-circle-fill ms-2 text-danger"></i>
+                                    {% endif %}
+                                </label>
                             </div>
                             {% endfor %}
                         </div>
-                        <button type="submit" class="btn btn-next-question">
-                            Next Question <i class="bi bi-arrow-right-circle ms-2"></i>
+
+                        {% if show_explanation %}
+                        <!-- Explanation Box -->
+                        <div class="explanation-box mb-3 p-3 rounded-3 {% if is_correct %}bg-success bg-opacity-10 border border-success{% else %}bg-danger bg-opacity-10 border border-danger{% endif %}">
+                            <h6 class="fw-bold mb-2">
+                                {% if is_correct %}
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>Correct!
+                                {% else %}
+                                <i class="bi bi-x-circle-fill text-danger me-2"></i>Incorrect
+                                {% endif %}
+                            </h6>
+                            <p class="mb-0 small">{{ question.explanation }}</p>
+                        </div>
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-next-question" {% if show_explanation %}onclick="this.form.removeChild(this.form.querySelector('[name=show_explanation]'))"{% endif %}>
+                            {% if show_explanation %}
+                            Continue <i class="bi bi-arrow-right-circle ms-2"></i>
+                            {% else %}
+                            Submit Answer <i class="bi bi-check-circle ms-2"></i>
+                            {% endif %}
                         </button>
                     </form>
             </div>
@@ -296,6 +373,26 @@
                     bar.setAttribute('aria-valuenow', String(curr));
                 }, 50);
             });
+            // Timer logic
+            const badge = document.getElementById('quizTimer');
+            const form = document.getElementById('quizForm');
+            if(badge && form){
+                let remaining = Number(badge.dataset.remaining)||0;
+                const text = document.getElementById('timerText');
+                const tick = ()=>{
+                    if(remaining <= 0){
+                        // auto-submit (no answer) to move forward or finish
+                        try{ form.submit(); }catch(e){}
+                        return;
+                    }
+                    const m = Math.floor(remaining/60);
+                    const s = String(remaining%60).padStart(2,'0');
+                    text.textContent = `${m}:${s}`;
+                    remaining -= 1;
+                    setTimeout(tick, 1000);
+                };
+                tick();
+            }
         });
 </script>
 {% endblock %}

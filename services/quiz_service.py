@@ -28,7 +28,12 @@ except ValueError:
 
 
 class TriviaService:
-    def __init__(self, timeout: Optional[int] = None, retries: Optional[int] = None):
+    def __init__(
+        self,
+        timeout: Optional[int] = None,
+        retries: Optional[int] = None,
+        allow_synthetic: Optional[bool] = None,
+    ):
         # Allow overrides from env; fallback to provided argument or defaults
         if timeout is None:
             try:
@@ -42,12 +47,19 @@ class TriviaService:
                 retries = 3
         self.timeout = timeout
         self.retries = max(1, retries)
+        if allow_synthetic is None:
+            allow_synthetic = os.getenv("ALLOW_SYNTHETIC_QUESTIONS", "0") == "1"
+        self.allow_synthetic = allow_synthetic
 
-    def _fetch(self, amount: int = 1, category_id: Optional[int] = None) -> List[Dict]:
+    def _fetch(
+        self, amount: int = 1, category_id: Optional[int] = None, difficulty: Optional[str] = None
+    ) -> List[Dict]:
         """Call OpenTDB with simple retry/backoff; return list of raw question dicts (may be empty)."""
         params: Dict[str, Any] = {"amount": amount, "type": "multiple"}
         if category_id:
             params["category"] = category_id
+        if difficulty and difficulty in ["easy", "medium", "hard"]:
+            params["difficulty"] = difficulty
         # dynamic linear backoff sequence based on configured retries
         backoffs = [i * 0.4 for i in range(self.retries)]  # 0.0, 0.4, 0.8, ...
         for delay in backoffs:
@@ -67,11 +79,14 @@ class TriviaService:
         # On repeated failure, return empty (caller performs fallback logic)
         return []
 
-    def fetch_questions_for_topics(self, topics: List[str], total_needed: int = 5) -> List[Dict]:
+    def fetch_questions_for_topics(
+        self, topics: List[str], total_needed: int = 5, difficulty: Optional[str] = None
+    ) -> List[Dict]:
         """
         Fetch questions distributed across selected topics. Guarantee up to total_needed questions
         when possible, using fallback to general API if needed.
-        Returns list of question dicts with keys: question, options, correct
+        Returns list of question dicts with keys: question, options, correct, explanation
+        Difficulty can be 'easy', 'medium', or 'hard'
         """
         import time
 
@@ -99,7 +114,12 @@ class TriviaService:
 
             cat_id = CATEGORY_MAP.get(t)
             try:
-                raw = self._fetch(amount=questions_to_fetch, category_id=cat_id)
+                if difficulty in ["easy", "medium", "hard"]:
+                    raw = self._fetch(
+                        amount=questions_to_fetch, category_id=cat_id, difficulty=difficulty
+                    )
+                else:
+                    raw = self._fetch(amount=questions_to_fetch, category_id=cat_id)
             except Exception:
                 raw = []
             for r in raw:
@@ -107,13 +127,25 @@ class TriviaService:
                 correct = html.unescape(r.get("correct_answer", ""))
                 options = [html.unescape(x) for x in r.get("incorrect_answers", [])] + [correct]
                 random.shuffle(options)
+                # Generate explanation based on question type and correct answer
+                explanation = self._generate_explanation(q_text, correct, t)
                 if q_text and correct:
-                    questions.append({"question": q_text, "options": options, "correct": correct})
+                    questions.append(
+                        {
+                            "question": q_text,
+                            "options": options,
+                            "correct": correct,
+                            "explanation": explanation,
+                        }
+                    )
 
         # if not enough, fetch generic questions as fallback
         if len(questions) < total_needed:
             try:
-                raw = self._fetch(amount=total_needed, category_id=None)
+                if difficulty in ["easy", "medium", "hard"]:
+                    raw = self._fetch(amount=total_needed, category_id=None, difficulty=difficulty)
+                else:
+                    raw = self._fetch(amount=total_needed, category_id=None)
             except Exception:
                 raw = []
             for r in raw:
@@ -121,8 +153,22 @@ class TriviaService:
                 correct = html.unescape(r.get("correct_answer", ""))
                 options = [html.unescape(x) for x in r.get("incorrect_answers", [])] + [correct]
                 random.shuffle(options)
+                # Generate explanation for fallback questions (category is unknown)
+                explanation = self._generate_explanation(q_text, correct, "General Knowledge")
                 if q_text and correct:
-                    questions.append({"question": q_text, "options": options, "correct": correct})
+                    questions.append(
+                        {
+                            "question": q_text,
+                            "options": options,
+                            "correct": correct,
+                            "explanation": explanation,
+                        }
+                    )
+
+        # As a final safety net for offline runs initiated via routes, synthesize questions
+        if len(questions) < total_needed and self.allow_synthetic:
+            needed = total_needed - len(questions)
+            questions.extend(self._synthetic_questions(topics, needed))
 
         # make sure we don't ask more than available
         if not questions:
@@ -136,3 +182,39 @@ class TriviaService:
         # Store in cache
         _QUESTION_CACHE[key] = {"data": final[:], "ts": now}
         return final
+
+    def _generate_explanation(self, question: str, correct_answer: str, category: str) -> str:
+        """Generate a simple explanation for the correct answer."""
+        # Basic explanation template - can be enhanced with AI/GPT later
+        explanations = {
+            "Science & Nature": f"The correct answer is '{correct_answer}'. This is a fundamental concept in science and nature.",
+            "Computers": f"The correct answer is '{correct_answer}'. This is an important concept in computer science and technology.",
+            "Mathematics": f"The correct answer is '{correct_answer}'. This follows mathematical principles and calculations.",
+            "Sports": f"The correct answer is '{correct_answer}'. This is a well-known fact in sports history.",
+            "History": f"The correct answer is '{correct_answer}'. This is a significant historical fact.",
+            "Geography": f"The correct answer is '{correct_answer}'. This is an important geographical fact.",
+            "Art": f"The correct answer is '{correct_answer}'. This relates to art history and cultural knowledge.",
+            "Celebrities": f"The correct answer is '{correct_answer}'. This is a notable fact about popular culture.",
+        }
+        return explanations.get(category, f"The correct answer is '{correct_answer}'.")
+
+    def _synthetic_questions(self, topics: List[str], count: int) -> List[Dict]:
+        """Generate simple deterministic questions for offline/testing scenarios."""
+        if not topics:
+            topics = ["General Knowledge"]
+        out: List[Dict] = []
+        base_options = ["A", "B", "C", "D"]
+        for i in range(count):
+            topic = topics[i % len(topics)]
+            question = f"{topic}: Sample Question {i + 1}. Choose 'A'."
+            correct = "A"
+            explanation = self._generate_explanation(question, correct, topic)
+            out.append(
+                {
+                    "question": question,
+                    "options": base_options[:],
+                    "correct": correct,
+                    "explanation": explanation,
+                }
+            )
+        return out

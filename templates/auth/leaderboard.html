@@ -339,40 +339,55 @@
                                 <tr>
                                     <th>Rank</th>
                                     <th>User</th>
-                                    <th>Average Score</th>
+                                    <th>Total XP</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for performer in top_performers %}
-                                <tr class="{% if loop.index == 1 %}top-1-row{% elif loop.index == 2 %}top-2-row{% elif loop.index == 3 %}top-3-row{% endif %}">
-                                    <td>
-                                        <div class="rank-badge {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% else %}rank-other{% endif %}">
-                                            {% if loop.index <= 3 %}<i class="bi bi-trophy-fill"></i>{% else %}{{ loop.index }}{% endif %}
-                                        </div>
-                                    </td>
-                                    <td class="username-cell">
-                                        <div class="avatar-wrapper">
-                                            {% if performer.avatar %}
-                                                <img src="{{ performer.avatar|avatar_url(performer.username|urlencode) }}" alt="{{ performer.username }}'s avatar" class="avatar-img" loading="lazy" width="48" height="48" />
-                                            {% else %}
-                                                <span class="avatar">{{ performer.username[0]|upper }}</span>
-                                            {% endif %}
-                                        </div>
-                                        <div>
-                                            <div class="username-name">{{ performer.username }}</div>
-                                            <div class="username-meta">
-                                                <i class="bi bi-bar-chart stat-icon"></i>
-                                                <span>{{ performer.total_quizzes }} quiz{{ 'zes' if performer.total_quizzes != 1 else '' }}</span>
+                                {% if top_performers and top_performers|length > 0 %}
+                                    {% for performer in top_performers %}
+                                    <tr class="{% if loop.index == 1 %}top-1-row{% elif loop.index == 2 %}top-2-row{% elif loop.index == 3 %}top-3-row{% endif %}">
+                                        <td>
+                                            <div class="rank-badge {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% else %}rank-other{% endif %}">
+                                                {% if loop.index <= 3 %}<i class="bi bi-trophy-fill"></i>{% else %}{{ loop.index }}{% endif %}
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="score-badge {% if loop.index == 1 %}score-gold{% elif loop.index == 2 %}score-silver{% elif loop.index == 3 %}score-bronze{% else %}score-default{% endif %}">
-                                            {{ "%.1f"|format(performer.avg_percentage) }}%
-                                        </span>
-                                    </td>
-                                </tr>
-                                {% endfor %}
+                                        </td>
+                                        <td class="username-cell">
+                                            <div class="avatar-wrapper">
+                                                {% if performer.avatar %}
+                                                    <img src="{{ performer.avatar|avatar_url(performer.username|urlencode) }}" alt="{{ performer.username }}'s avatar" class="avatar-img" loading="lazy" width="48" height="48" />
+                                                {% else %}
+                                                    <span class="avatar">{{ performer.username[0]|upper }}</span>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <div class="username-name">{{ performer.username }}</div>
+                                                <div class="username-meta">
+                                                    <i class="bi bi-bar-chart stat-icon"></i>
+                                                    <span>{{ performer.total_quizzes }} quiz{{ 'zes' if performer.total_quizzes != 1 else '' }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="score-badge {% if loop.index == 1 %}score-gold{% elif loop.index == 2 %}score-silver{% elif loop.index == 3 %}score-bronze{% else %}score-default{% endif %}">
+                                                {{ performer.total_xp }} XP
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="empty-state">
+                                            <i class="bi bi-people"></i>
+                                            <p class="mb-2 fw-semibold">No global leaderboard yet.</p>
+                                            <small class="text-muted">Be the first to take a quiz and claim the top spot!</small>
+                                            <div class="mt-3">
+                                                <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                                                    <i class="bi bi-play-fill me-2"></i>Start Your First Quiz
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -392,8 +407,8 @@
                                 <tr>
                                     <th>Rank</th>
                                     <th>Username</th>
-                                    <th>Best Score</th>
-                                    <th>Avg Score</th>
+                                    <th>Topic XP</th>
+                                    <th>Attempts</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -423,11 +438,11 @@
                                         </td>
                                         <td>
                                             <span class="score-badge {% if loop.index == 1 %}score-gold{% elif loop.index == 2 %}score-silver{% elif loop.index == 3 %}score-bronze{% else %}score-default{% endif %}">
-                                                {{ score.best_score }}%
+                                                {{ score.topic_xp }} XP
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="score-badge score-default">{{ score.avg_score }}%</span>
+                                            <span class="score-badge score-default">{{ score.attempts }}</span>
                                         </td>
                                     </tr>
                                     {% endfor %}

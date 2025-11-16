@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}My History | BrainRush{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2 class="fw-bold brand-gradient">Quiz History</h2>
+            <p class="text-muted mb-0">Your last {{ scores|length }} attempts</p>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        {% for s in scores %}
+        {% set pct = (s.score / s.max_score * 100)|round(0) %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0" style="border-radius:16px; overflow:hidden;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <div class="fw-bold">{{ s.quiz_name }}</div>
+                            <div class="small text-muted"><i class="bi bi-calendar3 me-1"></i>{{ s.date_taken.strftime('%b %d, %Y %H:%M') }}</div>
+                        </div>
+                        <span class="badge" style="background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; font-weight:600;">{{ pct }}%</span>
+                    </div>
+                    <div class="progress" style="height:10px; border-radius:10px; background:rgba(13,110,253,0.15);">
+                        <div class="progress-bar" role="progressbar" style="width: {{ pct }}%; background:linear-gradient(90deg,#11998e,#38ef7d);"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2 small text-muted">
+                        <span>Score: <strong>{{ s.score }}/{{ s.max_score }}</strong></span>
+                        <span>{{ s.date_taken.strftime('%I:%M %p') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size:3rem;"></i>
+                <h5 class="mt-2">No history yet</h5>
+                <p class="text-muted">Take your first quiz to start tracking progress.</p>
+                <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                    <i class="bi bi-play-circle me-2"></i>Start Quiz
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
